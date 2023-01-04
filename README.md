@@ -45,8 +45,6 @@ This project provides a M3U playlist generator. The special focus was that the M
 
 ### Prerequisites
 
-You need docker on the machine where you want to run the application:
-
 * An IDE to build and maybe also to run the project, e.g. Visual Studio will do
 * [dotnet 7.0](https://dotnet.microsoft.com/download/dotnet/7.0)
 * Any hardware that runs dotnet 7.0
