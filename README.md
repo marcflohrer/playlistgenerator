@@ -19,12 +19,7 @@
 
   <p align="center">
     <br />
-    <a href="https://github.com/marcflohrer/AspNetOnSqlServer"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/marcflohrer/AspNetOnSqlServer/issues/new/choose">Report Bug</a>
-    ·
-    <a href="https://github.com/marcflohrer/AspNetOnSqlServer/issues">Request Feature</a>
+    <a href="https://github.com/marcflohrer/playlistgenerator"><strong>Explore the docs »</strong></a>
   </p>
 </p>
 
@@ -36,9 +31,9 @@
       <a href="#about-the-project">About The Project</a>
     </li>
     <li><a href="#Prerequisites">What is it about?</a></li>
-    <li><a href="#Known-limitations">Known limitations</a></li>
-    <li><a href="#Get-started">Get started</a></li>
-    <li><a href="#What-it-does">What it does</a></li>
+    <li><a href="#known-limitations">Known limitations</a></li>
+    <li><a href="#get-started">Get started</a></li>
+    <li><a href="#what-it-does">What it does</a></li>
     <li><a href="#license">License</a></li>
   </ol>
 </details>
