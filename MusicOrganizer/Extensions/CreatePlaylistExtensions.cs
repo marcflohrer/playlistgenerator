@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Text.Json;
-using System.Web;
+﻿using System.Text.Json;
 using MusicOrganizer.Models;
 using MusicOrganizer.Services;
 
@@ -20,7 +17,7 @@ namespace MusicOrganizer.Extensions
             {
                 foreach (var md in mp3DirectoryInfos)
                 {
-                    var isMainDir = md.isMainDir ? " (main dir)" : string.Empty;
+                    var isMainDir = md.IsMainDir ? " (main dir)" : string.Empty;
                     Logger.WriteLine(output, $"-> {md.DirectoryInfo.FullName}{isMainDir}");
                 }
             }
@@ -41,7 +38,7 @@ namespace MusicOrganizer.Extensions
                 Logger.WriteLine(playlist, $"#PLAYLIST: {playlist.Name.Replace(".m3u8", string.Empty).Replace(".m3u", string.Empty)}");
                 foreach (var playlistMp3File in playlistMp3Files!)
                 {
-                    Logger.WriteLine(playlist, $"#EXTINF:{playlistMp3File?.Mp3Info?.DurationSeconds},{string.Join('&', playlistMp3File?.Mp3Info?.Interpret ?? Array.Empty<string>())} - {playlistMp3File?.Mp3Info?.Title ?? string.Empty}");
+                    Logger.WriteLine(playlist, $"#EXTINF:{playlistMp3File?.Mp3Info?.DurationSeconds},{string.Join('&', playlistMp3File?.Mp3Info?.Interpret ?? [])} - {playlistMp3File?.Mp3Info?.Title ?? string.Empty}");
                     if (playlistMp3File?.Mp3Info?.FilePath == null)
                     {
                         Logger.WriteLine(output, $"Path is null. {JsonSerializer.Serialize(playlistMp3File?.Mp3Info)}");
@@ -65,12 +62,6 @@ namespace MusicOrganizer.Extensions
         public static void PrintMp3Info(this Mp3Info? d, FileInfo? output, string deleteReason)
         {
             Logger.WriteLine(output, $"{DateTime.Now} \t --> T: {d?.Title}; I: {string.Join(';', d?.Interpret ?? Array.Empty<string>())}; Reason: {deleteReason}; {d?.FilePath}; {d?.Md5Hash}; {d?.Number}; {string.Join(';', d?.AlbumArtists ?? Array.Empty<string>())}; Bytes : {d?.SizeInBytes}; AmazonId : {d?.AmazonId}; Year : {d?.Year}");
-        }
-
-        private static void PrintPlaylistEntry(FileInfo? deletionScript, string? filePath)
-        {
-            filePath = filePath.EscapeSpecialChars();
-            Logger.WriteLine(deletionScript, $"rm -f {filePath}");
         }
     }
 }

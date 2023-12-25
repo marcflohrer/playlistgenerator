@@ -28,6 +28,9 @@ namespace MusicOrganizer.Models
 
         [ArgShortcut("d")]
         public string? DeletionScript { get; internal set; }
+
+        [ArgShortcut("c")]
+        public string? CsvInputPlaylistFile { get; internal set; }
     }
 }
 

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text.RegularExpressions;
 using MusicOrganizer.Services;
 using TagLib;
@@ -70,14 +67,14 @@ public static class SonosEncodingExtensions
     private static string StartDuplicateCounting(string cleanedFullName)
         => cleanedFullName.Replace(".mp3", "(1).mp3");
 
-    public static void CleanTags(this TagLib.Tag tag, TagLib.File file, FileInfo? logFile)
+    public static void CleanTags(this TagLib.Tag tag, FileInfo? logFile)
     {
-        bool changed = false;
+        var changed = false;
         changed = tag.AssignCleanedTag("Album", changed, false, logFile);
         changed = tag.AssignCleanedTag("AlbumArtists", changed, true, logFile);
         changed = tag.AssignCleanedTag("Artists", changed, true, logFile);
         changed = tag.AssignCleanedTag("Title", changed, false, logFile);
-        changed = tag.AssignCleanedTag("Performers", changed, true, logFile);
+        _ = tag.AssignCleanedTag("Performers", changed, true, logFile);
     }
 
     private static bool AssignCleanedTag(this Tag tag, string tagName,

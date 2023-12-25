@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-
-namespace MusicOrganizer.Extensions;
+﻿namespace MusicOrganizer.Extensions;
 
 public static class DirectoryExtensions
 {

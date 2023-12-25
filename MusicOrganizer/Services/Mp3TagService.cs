@@ -1,4 +1,8 @@
-﻿using MusicOrganizer.Extensions;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using MusicOrganizer.Extensions;
 using MusicOrganizer.Models;
 
 namespace MusicOrganizer.Services;
@@ -24,8 +28,8 @@ public static class Mp3TagService
         return fileTags;
     }
 
-    public static List<SongLocation> FindMp3TwinInMainDir(this List<FileTags> mainDirFileTags,
-        List<FileTags> playListFileTags, DirectoryInfo mainDir, DirectoryInfo playlistDir,
+    public static List<SongLocation> FindMp3TwinInMainDir(this IList<FileTags> mainDirFileTags,
+        IList<FileTags> playListFileTags, DirectoryInfo mainDir, DirectoryInfo playlistDir,
         FileInfo? output)
     {
         var normalizedMainDirFileTag = NormalizeFileTags(mainDirFileTags);
@@ -48,17 +52,22 @@ public static class Mp3TagService
         return playlistSongLocations;
     }
 
-    private static Dictionary<string, SongLocations> NormalizeFileTags(List<FileTags> mainDirFileTags)
+    public static List<SongLocation> RemoveDuplicates(this Dictionary<string, SongLocations> songLocations)
+    {
+        return songLocations.Select(sl => new SongLocation(sl.Key, sl.Value.Mp3Infos.FirstOrDefault()!))
+                                                             .ToList();
+    }
+
+    public static Dictionary<string, SongLocations> NormalizeFileTags(IList<FileTags> mainDirFileTags)
     {
         var mp3Files = new Dictionary<string, SongLocations>();
         foreach (var f in mainDirFileTags)
         {
             var mp3Info = f.Mp3Info;
-            var normalizedTitle = Normalize($"{mp3Info.Title} + {string.Join(',', mp3Info.Interpret)}");
-            var file = new FileInfo(f.FilePath);
+            var normalizedTitle = NormalizeSongTag($"{mp3Info.Title} + {string.Join(',', mp3Info.Interpret)}", NormalizeMode.Loose);
             if (!mp3Files.TryGetValue(normalizedTitle, out var songInfo))
             {
-                songInfo = new SongLocations(normalizedTitle, new List<Mp3Info> { mp3Info });
+                songInfo = new SongLocations(normalizedTitle, [mp3Info]);
             }
             else
             {
@@ -78,27 +87,27 @@ public static class Mp3TagService
         if (duplicateCount > 0)
         {
             var fileSingularPlural = duplicateCount == 1 ? "file" : "files";
-            Logger.WriteLine(logFile, $"{DateTime.Now} Found {(duplicateCount)} songs with multiple {fileSingularPlural}.");
+            Logger.WriteLine(logFile, $"{DateTime.Now} Found {duplicateCount} songs with multiple {fileSingularPlural}.");
         }
     }
 
-    public record ScanResult(bool FoundDuplicates, List<FileTags> FileTags);
+    public record ScanResult(bool FoundDuplicates, IList<FileTags> FileTags);
 
     public static ScanResult CreateDeletionScript(
         this List<FileTags> fileTags,
         FileInfo? deletionScript,
-        FileInfo? output)
+        FileInfo? logFile)
     {
         var mp3Files = new Dictionary<string, SongLocations>();
         foreach (var f in fileTags)
         {
             var mp3Info = f.Mp3Info;
-            var normalizedTitle = Normalize($"{mp3Info.Title} + {string.Join(',', mp3Info.Interpret)}");
+            var normalizedTitle = NormalizeSongTag($"{mp3Info.Title} + {string.Join(',', mp3Info.Interpret)}", NormalizeMode.Loose);
             var file = new FileInfo(f.FilePath);
-            bool addSongInfo = false;
+            var addSongInfo = false;
             if (!mp3Files.TryGetValue(normalizedTitle, out var songInfo))
             {
-                songInfo = new SongLocations(normalizedTitle, new List<Mp3Info> { mp3Info });
+                songInfo = new SongLocations(normalizedTitle, [mp3Info]);
                 addSongInfo = true;
             }
             else
@@ -122,31 +131,29 @@ public static class Mp3TagService
             }
         }
 
-        var list = mp3Files.ToList().Where(mp3 => mp3.Value.Mp3Infos.Count() > 1);
+        var list = mp3Files.ToList().Where(mp3 => mp3.Value.Mp3Infos.Count > 1);
         var duplicateMp3Files = new Dictionary<string, SongLocations>();
         foreach (var kvp in list)
         {
-            kvp.Value.Mp3Infos.ForEach(m => m.PrintMp3Info(output, "<not decided>"));
+            kvp.Value.Mp3Infos.ForEach(m => m.PrintMp3Info(logFile, "<not decided>"));
             duplicateMp3Files.Add(kvp.Key, kvp.Value);
         }
-        duplicateMp3Files?.LogDuplicates(output);
+        duplicateMp3Files?.LogDuplicates(logFile);
         if (duplicateMp3Files != null && duplicateMp3Files.Any())
         {
-            duplicateMp3Files?.CreateDeletionScript(output, deletionScript);
-            Logger.WriteLine(output, $"{DateTime.Now} Aborting as there are duplicate mp3 songs.");
+            duplicateMp3Files?.CreateDeletionScript(logFile, deletionScript);
+            Logger.WriteLine(logFile, $"{DateTime.Now} Aborting as there are duplicate mp3 songs.");
             return new ScanResult(true, fileTags);
         }
         return new ScanResult(false, fileTags);
     }
 
-    private static string Normalize(string title)
+    public static string NormalizeSongTag(this string title, NormalizeMode normalizeMode)
     {
-        var normalized = title.ToLowerInvariant();
-        // remove punctuation marks
-        var noPunctuation = normalized.RemovePunctuation();
-        var noTextInBrackets = noPunctuation.RemoveContentInBrackets();
-        var noUnicode = noTextInBrackets.ToM3uCompliantPath().Text;
-        return noUnicode;
+        return title.ToLowerInvariant()
+            .RemovePunctuation()
+            .RemoveContentInBrackets()
+            .RemoveContentAfterDash(normalizeMode)
+            .ToM3uCompliantPath().Text;
     }
 }
-

@@ -1,13 +1,12 @@
-﻿using System;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using AnyAscii;
 
 namespace MusicOrganizer.Extensions;
 
 public static class AsciiExtensions
 {
-    private static Dictionary<string, string> UnicodeToMultiCharAsciiMap { get => unicodeToMultiCharAsciiMap; set => unicodeToMultiCharAsciiMap = value; }
-    private static Dictionary<string, string> unicodeToMultiCharAsciiMap = new Dictionary<string, string>
+    private static Dictionary<string, string> UnicodeToMultiCharAsciiMap { get => s_unicodeToMultiCharAsciiMap; set => s_unicodeToMultiCharAsciiMap = value; }
+    private static Dictionary<string, string> s_unicodeToMultiCharAsciiMap = new()
     {
         {"\u00C4",  "Ae" },
         {"\u00D6",  "Oe" },
@@ -314,7 +313,7 @@ public static class AsciiExtensions
         var pattern = "[^ -~]";
         string result = Regex.Replace(text, pattern, s =>
         {
-            var c = (char)s.Value[0];
+            var c = s.Value[0];
             var result = UnicodeToMultiCharAsciiMap.TryGetValue(c.ToString(), out var v1)
             ? v1
             : $"{c}";

@@ -1,9 +1,9 @@
-﻿using System;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
+using MusicOrganizer.Models;
 
 namespace MusicOrganizer.Extensions;
 
-public static class StringExtensions
+public static partial class StringExtensions
 {
     public static Dictionary<string, string> CharReplacementMap = new Dictionary<string, string>()
     {
@@ -41,7 +41,7 @@ public static class StringExtensions
     public static string RemovePunctuation(this string text)
     {
         var result = text.Replace(" and ", "&");
-        var punctuation = ".?!,:;––—'´‘/…*& #~\\@^|";
+        var punctuation = ".?!,:;––—´‘/…*& #~\\@^|";
         foreach (var p in punctuation.ToList())
         {
             result = result.Replace(p.ToString(), string.Empty);
@@ -54,6 +54,15 @@ public static class StringExtensions
         var noRoundBracketsContent = Regex.Replace(text, "(.*)(\\(.*\\))(.*)", "$1$3");
         var noSquareBracketsContent = Regex.Replace(noRoundBracketsContent, "(.*)(\\[.*\\])(.*)", "$1$3");
         return Regex.Replace(noSquareBracketsContent, "(.*)(\\{.*\\})(.*)", "$1$3");
+    }
+
+    public static string RemoveContentAfterDash(this string text, NormalizeMode normalizeMode)
+    {
+        if (normalizeMode != NormalizeMode.Strict)
+        {
+            return text;
+        }
+        return text[..((!text.Contains('-', StringComparison.CurrentCulture)) ? text.Length : text.IndexOf('-'))].Trim();
     }
 }
 

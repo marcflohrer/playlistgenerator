@@ -1,5 +1,4 @@
-﻿using System;
-using MusicOrganizer.Models;
+﻿using MusicOrganizer.Models;
 using MusicOrganizer.Services;
 
 namespace MusicOrganizer.Extensions;
@@ -7,9 +6,9 @@ namespace MusicOrganizer.Extensions;
 public static class AppOptionsExtensions
 {
     public static List<Mp3DirectoryInfo> MainMusicDirectory(this AppOptions appOptions)
-        => appOptions.MusicDirectories.Where(pd => pd.isMainDir).ToList();
+        => appOptions.MusicDirectories.Where(pd => pd.IsMainDir).ToList();
     public static List<Mp3DirectoryInfo> PlaylistDirectory(this AppOptions appOptions)
-        => appOptions.MusicDirectories.Where(pd => pd.isMainDir == false).ToList();
+        => appOptions.MusicDirectories.Where(pd => pd.IsMainDir == false).ToList();
 
     public static void DeleteEmptySubDirsInMainDir(this AppOptions appOptions)
     {

@@ -1,9 +1,10 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Xml;
 using MusicOrganizer.Models;
-using static MusicOrganizer.Models.Mp3DirectoryInfo;
 using static MusicOrganizer.Services.Mp3TagService;
 
 namespace MusicOrganizer.Services
@@ -13,11 +14,11 @@ namespace MusicOrganizer.Services
 
         public static List<FileInfo> ResumeOrEnumerateMp3s(this List<Mp3DirectoryInfo> mp3Directories, FileInfo logFile, FileInfo resumeFile)
         {
-            var files = ResumeService.LoadResumeFilesPoint(resumeFile, logFile);
+            var files = LoadResumeFilesPoint(resumeFile, logFile);
             if (files == null)
             {
                 files = mp3Directories.EnumerateMp3s(logFile);
-                ResumeService.StoreResumeFilesPoint(resumeFile, files);
+                StoreResumeFilesPoint(resumeFile, files);
             }
 
             return files;

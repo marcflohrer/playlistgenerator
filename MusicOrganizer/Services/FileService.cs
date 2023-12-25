@@ -1,5 +1,4 @@
-﻿using System;
-namespace MusicOrganizer.Services;
+﻿namespace MusicOrganizer.Services;
 
 public class FileService : IFileService
 {

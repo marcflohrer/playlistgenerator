@@ -1,29 +1,26 @@
-﻿using System;
-using System.IO;
-
-namespace MusicOrganizer.Services;
+﻿namespace MusicOrganizer.Services;
 
 public static class Logger
 {
-    public static void WriteLine(FileInfo? output, string text)
+    public static void WriteLine(FileInfo? logFile, string text)
     {
         if (text == null)
         {
             return;
         }
-        if (output == null)
+        if (logFile == null)
         {
             Console.WriteLine(text);
         }
         else
         {
-            if (!File.Exists(output.FullName))
+            if (!File.Exists(logFile.FullName))
             {
-                File.WriteAllText(output.FullName, text + Environment.NewLine);
+                File.WriteAllText(logFile.FullName, text + Environment.NewLine);
             }
             else
             {
-                File.AppendAllLines(output.FullName, new List<string> { text });
+                File.AppendAllLines(logFile.FullName, new List<string> { text });
             }
         }
     }

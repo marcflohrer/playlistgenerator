@@ -61,14 +61,27 @@ This project provides a M3U playlist generator. The special focus was that the M
 2) Create a folder and copy the MP3 files that should be on your playlist into this folder
 3) Pass the following parameters to the executable your created in step 1.
 
-```bash
-mo -p <path-to-your-mp3-music-library> -l <path-to-your-mp3-playlist-folder> -n PlaylistName.m3u -f <filename-used-as-restore-point-for-mp3-files> -t <filename-used-as-restore-point-for-mp3-tags> -o logfile.txt -d deletionScript.sh
-```
+You can run the application using VS Code or Visual Studio with your parameters after adding the following section to your launch.json:
 
-A valid parameter set on Mac machine would be this:
-
-```bash
-mo -p /Volume/Harddisk/music -l /Volume/Harddisk/playlist -n PlaylistName.m3u -f restorefiles.txt -t restoretags.txt -o logfile.txt -d deletionScript.sh
+```launch.json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": ".NET Core Launch (Exportify case)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/MusicOrganizer/bin/Debug/net7.0/osx-x64/MusicOrganizer.dll",
+            "args": ["-p", "/Volumes/Harddisk/media/MainDir", "-l", "/Volumes/Harddisk/media/PlaylistDir", "-n", "ExportifyOutput.m3u", "-f", "resumefiles.txt", "-t", "resumetags.txt", "-o", "logger.txt", "-d", "deletion.sh", "-c", "exportifyInputPlaylist.csv"],
+            "cwd": "${workspaceFolder}/MusicOrganizer",
+            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
+            "console": "internalConsole",
+            "stopAtEntry": false
+        }
+    ]
+}
 ```
 
 ### What it does
@@ -80,7 +93,6 @@ mo -p /Volume/Harddisk/music -l /Volume/Harddisk/playlist -n PlaylistName.m3u -f
 5) **How does it decide what file to keep?** If there are two or more songs and only one of the has an Amazon ID it will put the other two files in the deletion script. If all files or no file has an Amazon ID it will check if in of one of the files the album artist differs from the song artist. If so it will put the files where the album artists differs onto the deletion list. If there are still duplicates it will keep the larger file over the shorter file. In case none of these criteria help to narrow down the duplicates to one remaining file it will take one random duplicate.
 6) After scanning the folders for duplicates it creates a playlist in M3U format in the folder of the mp3 music library with the name you provided with parameter ```-n```.
 7) During all the process you can monitor what is going on in the log file. You provided the filename of this log with parameter ```-o```. It is stored in the path of playlist folder.
-
 
 ## License
 

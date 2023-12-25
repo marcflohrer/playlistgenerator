@@ -1,5 +1,5 @@
-﻿using System;
-using MusicOrganizer.Extensions;
+﻿using MusicOrganizer.Extensions;
+using MusicOrganizer.Services;
 
 namespace MusicOrganizer.Tests;
 
@@ -27,5 +27,29 @@ public class AsciiExtensionsTests
         // Assert
         Assert.Equal(expected, output.Text);
     }
+
+    [Theory]
+    [InlineData("FooBar  - Radio Edit", "FooBar")]
+    [InlineData("FooBar Radio Edit", "FooBar Radio Edit")]
+    [InlineData("Miss Murray - Radio Mix", "Miss Murray")]
+    [InlineData("MissMurray-Radio Mix", "MissMurray")]
+    public static void RemoveContentBeforeDash_WhenDash_ThenOnlyTextBeforeDashIsReturned(string input, string expected)
+    {
+        var output = input.RemoveContentAfterDash(Models.NormalizeMode.Strict);
+
+        // Assert
+        Assert.Equal(expected, output);
+    }    
+
+    [Theory]
+    [InlineData("Rock \u0026 Roll Queen 2020 (German Version)", "rockrollqueen2020")]
+    [InlineData("An Honest Mistake - CD Album Version", "anhonestmistake")]
+    public static void NormalizeSongTag_WhenBrackets_ThenOnlyTextBeforeBracketsIsReturned(string input, string expected)
+    {
+        var output = input.NormalizeSongTag(Models.NormalizeMode.Strict);
+
+        // Assert
+        Assert.Equal(expected, output);
+    } 
 }
 
