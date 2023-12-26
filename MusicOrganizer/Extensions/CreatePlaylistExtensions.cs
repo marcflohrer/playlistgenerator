@@ -21,18 +21,27 @@ public static class CreatePlaylistExtensions
             Logger.WriteLine(playlist, $"#PLAYLIST: {playlist.Name.Replace(".m3u8", string.Empty).Replace(".m3u", string.Empty)}");
             foreach (var playlistMp3File in playlistMp3Files!)
             {
-                Logger.WriteLine(playlist, $"#EXTINF:{playlistMp3File?.Mp3Info?.DurationSeconds},{string.Join('&', playlistMp3File?.Mp3Info?.Interpret ?? [])} - {playlistMp3File?.Mp3Info?.Title ?? string.Empty}");
+                var commentOut = string.Empty;
+                if (playlistMp3File.Mp3Info.IsMissing())
+                {
+                    commentOut = "#";
+                }
+                Logger.WriteLine(playlist, $"{commentOut}#EXTINF:{playlistMp3File?.Mp3Info?.DurationSeconds},{string.Join('&', playlistMp3File?.Mp3Info?.Interpret ?? [])} - {playlistMp3File?.Mp3Info?.Title ?? string.Empty}");
                 if (playlistMp3File?.Mp3Info?.FilePath == null)
                 {
                     Logger.WriteLine(output, $"Path is null. {JsonSerializer.Serialize(playlistMp3File?.Mp3Info)}");
                 }
                 else
                 {
-                    var playListEntry = PlaylistService.CreatePlaylistEntry(mainDir, new FileInfo(playlistMp3File.Mp3Info.FilePath), output);
-                    if (!string.IsNullOrWhiteSpace(playListEntry))
+                    if (!playlistMp3File.Mp3Info.IsMissing())
                     {
-                        Logger.WriteLine(playlist, $"{playListEntry}");
+                        var playListEntry = PlaylistService.CreatePlaylistEntry(mainDir, new FileInfo(playlistMp3File.Mp3Info.FilePath), output);
+                        if (!string.IsNullOrWhiteSpace(playListEntry))
+                        {
+                            Logger.WriteLine(playlist, $"{playListEntry}");
+                        }
                     }
+                    Logger.WriteLine(playlist, $"{commentOut}{playlistMp3File.Mp3Info.Interpret.FirstOrDefault()}/{playlistMp3File.Mp3Info.Title}.mp3");
                 }
             }
         }

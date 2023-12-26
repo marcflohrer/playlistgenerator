@@ -7,7 +7,7 @@ namespace MusicOrganizer.Services;
 public static class M3uPlaylistCreator
 {
     public static void ToM3uPlaylist(
-        this IList<PlaylistEntry> playlistEntries,
+        this IList<Mp3Info> playlistEntries,
         ScanResult mainDirScanResult,
         FileInfo playList,
         Mp3DirectoryInfo mainDir,
@@ -16,6 +16,7 @@ public static class M3uPlaylistCreator
         var mp3InfoPlaylist = new List<FileTags>();
         foreach (var playlistEntry in playlistEntries)
         {
+            var found = false;
             var matchingFileTagsInterprets = mainDirScanResult.FileTags
                                         .Where(sr => sr.Mp3Info.Interpret
                                                 .ToOrderedList()
@@ -58,6 +59,7 @@ public static class M3uPlaylistCreator
             if (matchingFileTags == null || matchingFileTags.Count == 0)
             {
                 Logger.WriteLine(logFile, $"Nothing found for Song {playlistEntry.Title} by {string.Join(',', playlistEntry.Interpret)} from {playlistEntry.Year}");
+                mp3InfoPlaylist.Add(new FileTags(string.Empty, playlistEntry));
                 continue;
             }
 

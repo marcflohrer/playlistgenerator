@@ -25,9 +25,8 @@ public record Mp3Info(
                     int Year,
                     int DurationSeconds);
 
-public record PlaylistEntry(
-                    string[] Interpret,
-                    string Title,
-                    string NormalizedSongName,
-                    int Year,
-                    int DurationSeconds);
+public static class Mp3InfoExtensions
+{
+    public static bool IsMissing(this Mp3Info mp3Info) => string.IsNullOrEmpty(mp3Info.FilePath)
+            || !File.Exists(mp3Info.FilePath);
+}

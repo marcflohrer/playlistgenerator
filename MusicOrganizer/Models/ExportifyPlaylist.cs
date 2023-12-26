@@ -98,7 +98,7 @@ public class ExportifyPlaylist
     [Name("Time Signature")]
     public string TimeSignature { get; set; } = "";
 
-    public PlaylistEntry ToPlaylistEntry()
+    public Mp3Info ToPlaylistEntry()
     {
         var releaseYear = 0;
         if (ReleaseDate.Length == 4)
@@ -109,10 +109,16 @@ public class ExportifyPlaylist
         {
             releaseYear = DateTime.Parse(ReleaseDate).Year;
         }
-        return new(
+        return new Mp3Info(
+            string.Empty,
+            SpotifyId,
+            0,
+            GetArtistList(ArtistNames),
             GetArtistList(ArtistNames),
             TrackName,
             TrackName.NormalizeSongTag(NormalizeMode.Strict),
+            -1,
+            string.Empty,
             releaseYear,
             GetDurationInSeconds());
     }
