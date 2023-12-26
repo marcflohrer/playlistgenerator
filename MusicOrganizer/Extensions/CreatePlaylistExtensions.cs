@@ -41,7 +41,10 @@ public static class CreatePlaylistExtensions
                             Logger.WriteLine(playlist, $"{playListEntry}");
                         }
                     }
-                    Logger.WriteLine(playlist, $"{commentOut}{playlistMp3File.Mp3Info.Interpret.FirstOrDefault()}/{playlistMp3File.Mp3Info.Title}.mp3");
+                    else
+                    {
+                        Logger.WriteLine(playlist, $"{commentOut}{playlistMp3File.Mp3Info.Interpret.FirstOrDefault()}/{playlistMp3File.Mp3Info.Title}.mp3");
+                    }
                 }
             }
         }
