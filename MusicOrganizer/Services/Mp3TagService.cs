@@ -69,6 +69,20 @@ public static class Mp3TagService
 
     public record ScanResult(bool FoundDuplicates, IList<FileTags> FileTags);
 
+    public static void CreateM3uPlaylists(this ScanResult mainDirScanResult, AppOptions appOptions)
+    {
+        foreach (var csvFile in appOptions.CsvPlaylistFiles)
+        {
+            Logger.WriteLine(appOptions.LogFile, $"--------------{Environment.NewLine}PlayList {csvFile.Name}{Environment.NewLine}--------------");
+            var spotifyPlaylist = CsvToMp3InfoParser.ToMp3InfoList(csvFile);
+            spotifyPlaylist.ToM3uPlaylist(
+                mainDirScanResult,
+                appOptions.ToPlaylistFile(csvFile),
+                appOptions.MusicDirectory,
+                appOptions.LogFile);
+        }
+    }
+
     public static ScanResult CreateDeletionScriptForDuplicates(
         this List<FileTags> fileTags,
         FileInfo? deletionScript,
@@ -89,16 +103,12 @@ public static class Mp3TagService
             else
             {
                 var filePathCandidateToAdd = mp3Info.FilePath;
-                if (!songInfo.Mp3Infos.Where(mp3 => mp3.FilePath.ToLowerInvariant() == filePathCandidateToAdd.ToLowerInvariant()).Any())
+                if (!songInfo.Mp3Infos.Any(mp3 => mp3.FilePath.Equals(filePathCandidateToAdd, StringComparison.InvariantCultureIgnoreCase)))
                 {
                     songInfo.Mp3Infos.Add(mp3Info);
                     songInfo = new SongLocations(normalizedTitle, songInfo.Mp3Infos);
                     mp3Files.Remove(normalizedTitle);
                     addSongInfo = true;
-                }
-                else
-                {
-
                 }
             }
             if (addSongInfo)
@@ -127,6 +137,7 @@ public static class Mp3TagService
     public static string NormalizeSongTag(this string title, NormalizeMode normalizeMode)
     {
         return title.ToLowerInvariant()
+            .RemoveFeaturingSuffux()
             .RemovePunctuation()
             .RemoveContentInBrackets()
             .RemoveContentAfterDash(normalizeMode)

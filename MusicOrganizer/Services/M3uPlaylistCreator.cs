@@ -16,7 +16,6 @@ public static class M3uPlaylistCreator
         var mp3InfoPlaylist = new List<FileTags>();
         foreach (var playlistEntry in playlistEntries)
         {
-            var found = false;
             var matchingFileTagsInterprets = mainDirScanResult.FileTags
                                         .Where(sr => sr.Mp3Info.Interpret
                                                 .ToOrderedList()

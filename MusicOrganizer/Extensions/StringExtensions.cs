@@ -64,5 +64,10 @@ public static partial class StringExtensions
         }
         return text[..((!text.Contains('-', StringComparison.CurrentCulture)) ? text.Length : text.IndexOf('-'))].Trim();
     }
+
+    public static string RemoveFeaturingSuffux(this string text)
+    {
+        return text.Contains("feat.") ? text[..text.IndexOf("feat.")].Trim() : text;
+    }
 }
 

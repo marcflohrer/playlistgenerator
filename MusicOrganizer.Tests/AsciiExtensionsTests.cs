@@ -44,6 +44,7 @@ public class AsciiExtensionsTests
     [Theory]
     [InlineData("Rock \u0026 Roll Queen 2020 (German Version)", "rockrollqueen2020")]
     [InlineData("An Honest Mistake - CD Album Version", "anhonestmistake")]
+    [InlineData("Jennifer Rostock feat. Feine Sahne Fischfilet", "jenniferrostock")]
     public static void NormalizeSongTag_WhenBrackets_ThenOnlyTextBeforeBracketsIsReturned(string input, string expected)
     {
         var output = input.NormalizeSongTag(Models.NormalizeMode.Strict);
