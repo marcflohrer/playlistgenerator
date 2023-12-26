@@ -1,7 +1,4 @@
-﻿using System;
-using MusicOrganizer.Extensions;
-using MusicOrganizer.Services;
-namespace MusicOrganizer;
+﻿namespace MusicOrganizer;
 
 public static class TagLibExtensions
 {

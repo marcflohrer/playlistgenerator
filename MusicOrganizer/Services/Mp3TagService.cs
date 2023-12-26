@@ -28,30 +28,6 @@ public static class Mp3TagService
         return fileTags;
     }
 
-    public static List<SongLocation> FindMp3TwinInMainDir(this IList<FileTags> mainDirFileTags,
-        IList<FileTags> playListFileTags, DirectoryInfo mainDir, DirectoryInfo playlistDir,
-        FileInfo? output)
-    {
-        var normalizedMainDirFileTag = NormalizeFileTags(mainDirFileTags);
-        ResumeService.Store(normalizedMainDirFileTag, new FileInfo(Path.Combine(mainDir.FullName, "normalizedFileTags.txt")), output);
-        var playList = NormalizeFileTags(playListFileTags);
-        ResumeService.Store(playList, new FileInfo(Path.Combine(playlistDir.FullName, "normalizedFileTags.txt")), output);
-        var playlistSongLocations = new List<SongLocation>();
-        foreach (var normalizedTitle in playList.Keys)
-        {
-            if (normalizedMainDirFileTag.TryGetValue(normalizedTitle, out var value))
-            {
-                var mp3Info = value.Mp3Infos.First();
-                playlistSongLocations.Add(new SongLocation(normalizedTitle, mp3Info));
-            }
-            else
-            {
-                Logger.WriteLine(output, $"{DateTime.Now} Missing mp3 in main directory: {normalizedTitle}");
-            }
-        }
-        return playlistSongLocations;
-    }
-
     public static List<SongLocation> RemoveDuplicates(this Dictionary<string, SongLocations> songLocations)
     {
         return songLocations.Select(sl => new SongLocation(sl.Key, sl.Value.Mp3Infos.FirstOrDefault()!))
@@ -93,7 +69,7 @@ public static class Mp3TagService
 
     public record ScanResult(bool FoundDuplicates, IList<FileTags> FileTags);
 
-    public static ScanResult CreateDeletionScript(
+    public static ScanResult CreateDeletionScriptForDuplicates(
         this List<FileTags> fileTags,
         FileInfo? deletionScript,
         FileInfo? logFile)

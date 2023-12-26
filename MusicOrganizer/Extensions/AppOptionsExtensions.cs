@@ -5,28 +5,15 @@ namespace MusicOrganizer.Extensions;
 
 public static class AppOptionsExtensions
 {
-    public static List<Mp3DirectoryInfo> MainMusicDirectory(this AppOptions appOptions)
-        => appOptions.MusicDirectories.Where(pd => pd.IsMainDir).ToList();
-    public static List<Mp3DirectoryInfo> PlaylistDirectory(this AppOptions appOptions)
-        => appOptions.MusicDirectories.Where(pd => pd.IsMainDir == false).ToList();
 
-    public static void DeleteEmptySubDirsInMainDir(this AppOptions appOptions)
+    public static void DeleteEmptySubDirsInMusicDir(this AppOptions appOptions)
     {
-        DeleteEmptySubDirectories(appOptions, appOptions.MainMusicDirectory()
-            .Single()
-            .DirectoryInfo);
+        DeleteEmptySubDirectories(appOptions);
     }
 
-    public static void DeleteEmptySubDirsInPlaylistDir(this AppOptions appOptions)
+    private static void DeleteEmptySubDirectories(AppOptions appOptions)
     {
-        DeleteEmptySubDirectories(appOptions, appOptions.PlaylistDirectory()
-            .Single()
-            .DirectoryInfo);
-    }
-
-    private static void DeleteEmptySubDirectories(AppOptions appOptions, DirectoryInfo directoryInfo)
-    {
-        var countDeletedEmptyDirs = appOptions.MusicDirectories.Select(md => directoryInfo.DeleteEmptySubDirectories()).Sum();
+        var countDeletedEmptyDirs = appOptions.MusicDirectory.DirectoryInfo.DeleteEmptySubDirectories();
         if (countDeletedEmptyDirs > 0)
         {
             var directoryNames = countDeletedEmptyDirs != 1 ? "directories" : "directory";
@@ -36,15 +23,10 @@ public static class AppOptionsExtensions
 
     public static List<FileInfo> ResumeOrEnumerateMp3sInMainDir(this AppOptions appOptions)
     {
-        return appOptions.ResumeOrEnumerateMp3s(appOptions.MainMusicDirectory(), appOptions.ResumeMainFiles);
+        return appOptions.ResumeOrEnumerateMp3s(appOptions.MusicDirectory, appOptions.ResumeMainFiles);
     }
 
-    public static List<FileInfo> ResumeOrEnumerateMp3sInPlaylistDir(this AppOptions appOptions)
-    {
-        return appOptions.ResumeOrEnumerateMp3s(appOptions.PlaylistDirectory(), appOptions.ResumePlaylistFiles);
-    }
-
-    private static List<FileInfo> ResumeOrEnumerateMp3s(this AppOptions appOptions, List<Mp3DirectoryInfo> mp3DirectoryInfos, FileInfo resumeFile)
+    private static List<FileInfo> ResumeOrEnumerateMp3s(this AppOptions appOptions, Mp3DirectoryInfo mp3DirectoryInfos, FileInfo resumeFile)
     {
         var result = mp3DirectoryInfos
             .ResumeOrEnumerateMp3s(appOptions.LogFile!, resumeFile);

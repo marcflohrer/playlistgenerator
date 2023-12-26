@@ -1,99 +1,52 @@
-<!--
-*** Thanks for checking out the Best-README-Template. If you have a suggestion
-*** that would make this better, please fork the repo and create a pull request
-*** or simply open an issue with the tag "enhancement".
-*** Thanks again! Now go create something AMAZING! :D
--->
-<!-- PROJECT SHIELDS -->
-<!--
-*** I'm using markdown "reference style" links for readability.
-*** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
-*** See the bottom of this document for the declaration of the reference variables
-*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
-*** https://www.markdownguide.org/basic-syntax/#reference-style-links
--->
+# Importify
 
-<br />
+## Description
 
-  <h3 align="center">Playlist Generator</h3>
+Importify is a .NET application designed to import CSV music playlists exported from Spotify using [Exportify](https://exportify.net/). It organizes your local music library and creates m3u playlists based on the provided CSV files.
 
-  <p align="center">
-    <br />
-    <a href="https://github.com/marcflohrer/playlistgenerator"><strong>Explore the docs »</strong></a>
-  </p>
-</p>
+## Features
 
-<!-- TABLE OF CONTENTS -->
-<details open="open">
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-    </li>
-    <li><a href="#Prerequisites">What is it about?</a></li>
-    <li><a href="#known-limitations">Known limitations</a></li>
-    <li><a href="#get-started">Get started</a></li>
-    <li><a href="#what-it-does">What it does</a></li>
-    <li><a href="#license">License</a></li>
-  </ol>
-</details>
+- Scans and organizes local MP3 files.
+- Identifies and logs duplicate MP3 files.
+- Deletes empty subdirectories in the music directory.
+- Converts Spotify CSV playlists to m3u format.
+- Supports operation resumption. This means that if you changed the files in your music directory you have to delete the resume files for a new scan.
 
-<!-- ABOUT THE PROJECT -->
-## About The Project
+## Requirements
 
-This project provides a M3U playlist generator. The special focus was that the M3U playlist generated are compatible with the SONOS system.
+- .NET Runtime (compatible with .NET 8.0)
+- Local music library in MP3 format
+- CSV files exported from Spotify using [Exportify](https://exportify.net/)
 
-### Prerequisites
+## Installation
 
-* An IDE to build and maybe also to run the project, e.g. Visual Studio will do
-* [dotnet 7.0](https://dotnet.microsoft.com/download/dotnet/7.0)
-* Any hardware that runs dotnet 7.0
+1. Clone the repository from [[marcflohrer/playlistgenerator]](https://github.com/marcflohrer/playlistgenerator).
+2. Build the application using Visual Studio or .NET CLI.
 
-### Known Limitations
+## Usage
 
-* Only MP3 files are supported.
-* Only M3U playlists will be created.
-* Deletion script created only works on bash terminals.
+1. Place your exported CSV files from Spotify in a designated folder.
+2. Ensure your local music library is accessible to the application.
+3. Configure the `launch.json` file in VS Code:
+   - Update the "program" path to point to the built `MusicOrganizer.dll`.
+   - Set the "args" with the paths to your music directory (`-m`) and CSV directory (`-c`).
+4. Run the application using VS Code or .NET CLI.
 
-### Get started
+## Configuration
 
-1) Build the project with the IDE of your choice.
-2) Create a folder and copy the MP3 files that should be on your playlist into this folder
-3) Pass the following parameters to the executable your created in step 1.
+- Modify the application's behavior by adjusting the arguments in the `launch.json` file.
+- The "program" argument should point to the `MusicOrganizer.dll` file.
+- The "args" should include paths to your music directory and CSV directory.
 
-You can run the application using VS Code or Visual Studio with your parameters after adding the following section to your launch.json:
+## Disclaimer
 
-```launch.json
-{
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": ".NET Core Launch (Exportify case)",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build",
-            // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/MusicOrganizer/bin/Debug/net7.0/osx-x64/MusicOrganizer.dll",
-            "args": ["-p", "/Volumes/Harddisk/media/MainDir", "-l", "/Volumes/Harddisk/media/PlaylistDir", "-n", "ExportifyOutput.m3u", "-f", "resumefiles.txt", "-t", "resumetags.txt", "-o", "logger.txt", "-d", "deletion.sh", "-c", "exportifyInputPlaylist.csv"],
-            "cwd": "${workspaceFolder}/MusicOrganizer",
-            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
-            "console": "internalConsole",
-            "stopAtEntry": false
-        }
-    ]
-}
-```
-
-### What it does
-
-1) After scanning the mp3 files it will create a restore point in the filename you provided with parameter ```-f```. This speeds up future runs of the application. One file is stored in the folder of the mp3 music library and one is stored in the playlist folder. In case mp3 files have been deleted, renamed or added this restore file should be deleted or manually updated to keep it in sync with reality.
-2) The files and folders are renamed in case they contain any non ASCII characters. The non-ASCII characters are replaced with one or multiple ASCII characters that describe the character or resemble the non-ASCII character. The M3U format as it is implemented by SONOS does not allow Non-ASCII characters in file paths or file names.
-3) After creating the restore point for file paths, it will read the tags in the mp3 files. Then it will create a restore point in the filename you provided with parameter ```-t```. This speeds up future runs of the application. One file is stored in the folder of the mp3 music library and one is stored in the playlist folder. In case the tags of the mp3 files have been changed this restore file should be deleted or manually updated to keep it in sync with reality.
-4) After creating the restore point for mp3 tags it checks your input and playlist folder for duplicates creates a deletion script and aborts if it finds duplicates. In this case it outputs a deletion script with the name you provided as parameter ```-d``` in the folder of the music library. The deletion script when executed will delete the duplicate MP3 files. The decision what file to delete is based upon the tags in the MP3 files and might be erroneous. So check the script carefully before executing it - maybe the tags are wrong.*
-5) **How does it decide what file to keep?** If there are two or more songs and only one of the has an Amazon ID it will put the other two files in the deletion script. If all files or no file has an Amazon ID it will check if in of one of the files the album artist differs from the song artist. If so it will put the files where the album artists differs onto the deletion list. If there are still duplicates it will keep the larger file over the shorter file. In case none of these criteria help to narrow down the duplicates to one remaining file it will take one random duplicate.
-6) After scanning the folders for duplicates it creates a playlist in M3U format in the folder of the mp3 music library with the name you provided with parameter ```-n```.
-7) During all the process you can monitor what is going on in the log file. You provided the filename of this log with parameter ```-o```. It is stored in the path of playlist folder.
+This software is provided "as is", without warranty of any kind. The author(s) and contributors are not responsible for any damage or loss of data. It is strongly recommended to use Importify only on a backup of your music files.
 
 ## License
 
-Permissions of this strongest copyleft license are conditioned on making available complete source code of licensed works and modifications, which include larger works using a licensed work, under the same license. Copyright and license notices must be preserved. Contributors provide an express grant of patent rights. When a modified version is used to provide a service over a network, the complete source code of the modified version must be made available.
+Importify is licensed under GNU AFFERO GENERAL PUBLIC LICENSE. See the `LICENSE.md` file for more details.
+
+## Acknowledgments
+
+- Thanks to the [Exportify](https://exportify.net/) team for the Spotify playlist export tool.
+- Special thanks to all contributors and users of Importify.

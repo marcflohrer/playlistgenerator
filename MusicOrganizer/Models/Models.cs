@@ -1,10 +1,12 @@
-﻿namespace MusicOrganizer.Models;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+namespace MusicOrganizer.Models;
 
 public record PlaylistSongs(string NormalizedSongName, List<Mp3Info> Mp3Infos);
 
-public record PlaylistSongInfo(bool IsMainDir, int DurationSeconds, string FileNameNoExt, DirectoryInfo DirectoryInfo);
-
-public record Mp3DirectoryInfo(DirectoryInfo DirectoryInfo, bool IsMainDir);
+public record Mp3DirectoryInfo(DirectoryInfo DirectoryInfo);
 
 public record SongLocation(string NormalizedSongName, Mp3Info Mp3Info);
 

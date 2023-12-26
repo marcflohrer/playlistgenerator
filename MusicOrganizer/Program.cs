@@ -28,6 +28,7 @@ internal class Program
         catch (Exception ex)
         {
             Console.WriteLine($"{DateTime.Now} \n {ex.Message}");
+            throw;
         }
     }
 }

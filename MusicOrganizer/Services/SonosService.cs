@@ -1,5 +1,4 @@
-﻿using System;
-using MusicOrganizer.Extensions;
+﻿using MusicOrganizer.Extensions;
 
 namespace MusicOrganizer.Services
 {

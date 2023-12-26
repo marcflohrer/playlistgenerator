@@ -40,7 +40,7 @@ public static class SonosEncodingExtensions
     public static string IncrementDuplicateCounter(string cleanedFullName)
     {
         var pattern = @"(.*)(\([0-9]+\))(\.mp3)";
-        Regex mp3FileRegexPattern = new Regex(pattern, RegexOptions.Compiled);
+        var mp3FileRegexPattern = new Regex(pattern, RegexOptions.Compiled);
         var text = cleanedFullName;
         var match = mp3FileRegexPattern.Match(cleanedFullName);
         if (match.Groups.Count >= 3)

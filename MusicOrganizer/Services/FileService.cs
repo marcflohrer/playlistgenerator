@@ -17,9 +17,9 @@ public class FileService : IFileService
         {
             var _ = dirName != null ? Directory.CreateDirectory(dirName) : null;
         }
-        System.IO.File.Move(oldFile.FullName, destinationPath);
-        if (!Directory.GetFiles(oldFile.Directory!.FullName).Any() &&
-            !Directory.GetDirectories(oldFile.Directory!.FullName).Any())
+        File.Move(oldFile.FullName, destinationPath);
+        if (Directory.GetFiles(oldFile.Directory!.FullName).Length == 0 &&
+            Directory.GetDirectories(oldFile.Directory!.FullName).Length == 0)
         {
             Directory.Delete(oldFile.Directory!.FullName);
         }

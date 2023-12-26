@@ -12,12 +12,12 @@ namespace MusicOrganizer.Services
     public static class ResumeService
     {
 
-        public static List<FileInfo> ResumeOrEnumerateMp3s(this List<Mp3DirectoryInfo> mp3Directories, FileInfo logFile, FileInfo resumeFile)
+        public static List<FileInfo> ResumeOrEnumerateMp3s(this Mp3DirectoryInfo mp3Directory, FileInfo logFile, FileInfo resumeFile)
         {
             var files = LoadResumeFilesPoint(resumeFile, logFile);
             if (files == null)
             {
-                files = mp3Directories.EnumerateMp3s(logFile);
+                files = mp3Directory.EnumerateMp3s(logFile);
                 StoreResumeFilesPoint(resumeFile, files);
             }
 
@@ -83,7 +83,7 @@ namespace MusicOrganizer.Services
             }
         }
 
-        internal static void Store(Dictionary<string, SongLocations> data, FileInfo resumeFileName, FileInfo? output)
+        internal static void Store(Dictionary<string, SongLocations> data, FileInfo resumeFileName)
         {
             if (data != null)
             {

@@ -12,6 +12,8 @@ public static class CsvToMp3InfoParser
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
             NewLine = Environment.NewLine,
+            MissingFieldFound = (_) => { },
+            BadDataFound = null
         };
         using var reader = new StreamReader(path: csvFilePlayList.FullName);
         using var csv = new CsvReader(reader, config, false);
