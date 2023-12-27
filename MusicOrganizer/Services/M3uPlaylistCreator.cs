@@ -16,14 +16,7 @@ public static class M3uPlaylistCreator
         var mp3InfoPlaylist = new List<FileTags>();
         foreach (var playlistEntry in playlistEntries)
         {
-            var matchingFileTagsInterprets = mainDirScanResult.FileTags
-                                        .Where(sr => sr.Mp3Info.Interpret
-                                                .ToOrderedList()
-                                            .Select(i => i.NormalizeSongTag(NormalizeMode.Strict))
-                                                .SequenceEqual(playlistEntry.Interpret
-                                                    .ToOrderedList()
-                                                    .Select(i => i.NormalizeSongTag(NormalizeMode.Strict))))
-                                        .ToList();
+            var matchingFileTagsInterprets = GetExactMatchingFileTagsInterprets(mainDirScanResult, playlistEntry);
             var matchingFileTags = new List<FileTags>();
             if (matchingFileTagsInterprets.Count == 0)
             {
@@ -68,6 +61,17 @@ public static class M3uPlaylistCreator
         NormalizeFileTags(mp3InfoPlaylist)
             .RemoveDuplicates()
             .CreatePlaylistFile(playList, mainDir.DirectoryInfo, logFile);
+    }
+
+    private static List<FileTags> GetExactMatchingFileTagsInterprets(ScanResult mainDirScanResult, Mp3Info playlistEntry)
+    {
+        return mainDirScanResult.FileTags.Where(sr => sr.Mp3Info.Interpret
+                                                        .ToOrderedList()
+                                                    .Select(i => i.NormalizeSongTag(NormalizeMode.Strict))
+                                                        .SequenceEqual(playlistEntry.Interpret
+                                                            .ToOrderedList()
+                                                            .Select(i => i.NormalizeSongTag(NormalizeMode.Strict)), StringComparer.OrdinalIgnoreCase))
+                                                .ToList();
     }
 }
 

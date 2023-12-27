@@ -32,7 +32,6 @@ public class AsciiExtensionsTests
     [InlineData("FooBar  - Radio Edit", "FooBar")]
     [InlineData("FooBar Radio Edit", "FooBar Radio Edit")]
     [InlineData("Miss Murray - Radio Mix", "Miss Murray")]
-    [InlineData("MissMurray-Radio Mix", "MissMurray")]
     public static void RemoveContentBeforeDash_WhenDash_ThenOnlyTextBeforeDashIsReturned(string input, string expected)
     {
         var output = input.RemoveContentAfterDash(Models.NormalizeMode.Strict);
@@ -45,6 +44,8 @@ public class AsciiExtensionsTests
     [InlineData("Rock \u0026 Roll Queen 2020 (German Version)", "rockrollqueen2020")]
     [InlineData("An Honest Mistake - CD Album Version", "anhonestmistake")]
     [InlineData("Jennifer Rostock feat. Feine Sahne Fischfilet", "jenniferrostock")]
+    [InlineData("Hard-FI", "hard-fi")]
+    [InlineData("Hard‐Fi", "hard-fi")]
     public static void NormalizeSongTag_WhenBrackets_ThenOnlyTextBeforeBracketsIsReturned(string input, string expected)
     {
         var output = input.NormalizeSongTag(Models.NormalizeMode.Strict);

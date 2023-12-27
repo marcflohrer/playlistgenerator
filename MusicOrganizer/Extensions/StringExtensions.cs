@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using AnyAscii;
 using MusicOrganizer.Models;
 
 namespace MusicOrganizer.Extensions;
@@ -62,7 +63,11 @@ public static partial class StringExtensions
         {
             return text;
         }
-        return text[..((!text.Contains('-', StringComparison.CurrentCulture)) ? text.Length : text.IndexOf('-'))].Trim();
+        var transliterated = text.Transliterate();
+        var containsDash = transliterated.Contains(" - ", StringComparison.CurrentCulture);
+        return transliterated[..(containsDash ? transliterated.IndexOf(" - ")
+                                    : transliterated.Length)]
+                                    .Trim();
     }
 
     public static string RemoveFeaturingSuffux(this string text)

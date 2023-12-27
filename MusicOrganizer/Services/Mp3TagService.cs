@@ -137,10 +137,10 @@ public static class Mp3TagService
     public static string NormalizeSongTag(this string title, NormalizeMode normalizeMode)
     {
         return title.ToLowerInvariant()
+            .RemoveContentAfterDash(normalizeMode)
             .RemoveFeaturingSuffux()
             .RemovePunctuation()
             .RemoveContentInBrackets()
-            .RemoveContentAfterDash(normalizeMode)
             .ToM3uCompliantPath().Text;
     }
 }
