@@ -36,7 +36,7 @@ public static class FileInfoExtensions
                 tags.CleanTags(output);
             }
         }
-        var mainArtist = tags.Performers[0];
+        var mainArtist = tags.Performers[0].Split(" vs. ")[0].Split(" Vs. ")[0];
         var mp3Info = new Mp3Info(
             f.FullName,
             f.Md5(),

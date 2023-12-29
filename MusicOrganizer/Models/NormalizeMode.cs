@@ -7,6 +7,7 @@ namespace MusicOrganizer.Models;
 public enum NormalizeMode
 {
     Strict,
+    StrictInterpret,
     Loose
 }
 

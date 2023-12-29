@@ -42,27 +42,34 @@ public class AsciiExtensionsTests
     }    
 
     [Theory]
-    [InlineData("Rock \u0026 Roll Queen 2020 (German Version)", "rockrollqueen2020")]
-    [InlineData("An Honest Mistake - CD Album Version", "anhonestmistake")]
-    [InlineData("Jennifer Rostock feat. Feine Sahne Fischfilet", "jenniferrostock")]
-    [InlineData("Hard-FI", "hard-fi")]
-    [InlineData("Hard‐Fi", "hard-fi")]
-    [InlineData("Martin Solveig & Dragonettes", "martinsolveig")]
-    [InlineData("I Love It (feat. Charli XCX)", "iloveit")]
-    [InlineData("Many Shades Of Black - Performed by The Raconteurs and Adele", "manyshadesofblack")]
-    [InlineData("We Are Your Friends - Justice Vs Simian", "weareyourfriends")]
-    [InlineData("Wasted Little DJ's", "wastedlittledjs")]
-    public static void NormalizeSongTag_WhenBrackets_ThenOnlyTextBeforeBracketsIsReturned(string input, string expected)
+    [InlineData("Rock \u0026 Roll Queen 2020 (German Version)", false, "rockrollqueen2020")]
+    [InlineData("An Honest Mistake - CD Album Version", false, "anhonestmistake")]
+    [InlineData("Jennifer Rostock feat. Feine Sahne Fischfilet", true, "jenniferrostock")]
+    [InlineData("Hard-FI", true, "hard-fi")]
+    [InlineData("Hard‐Fi", true, "hard-fi")]
+    [InlineData("Martin Solveig & Dragonettes", true, "martinsolveig")]
+    [InlineData("I Love It (feat. Charli XCX)", false, "iloveit")]
+    [InlineData("Many Shades Of Black - Performed by The Raconteurs and Adele", true, "manyshadesofblack")]
+    [InlineData("We Are Your Friends - Justice Vs Simian", false, "weareyourfriends")]
+    [InlineData("Wasted Little DJ's", false, "wastedlittledjs")]
+    [InlineData("Down & Out I", false, "downouti")]
+    [InlineData("Down & Out II", false, "downoutii")]
+    [InlineData("Justice Vs. Simian", true, "justice")]
+    [InlineData("Justice vs. Simian", true, "justice")]
+    [InlineData("Justice Vs Simian", true, "justice")]
+    [InlineData("Justice vs Simian", true, "justice")]
+    public static void NormalizeSongTitle_WhenBrackets_ThenOnlyTextBeforeBracketsIsReturned(string input, bool isInterpret, string expected)
     {
+        var normalizeMode = isInterpret ? NormalizeMode.StrictInterpret : NormalizeMode.Strict;
         var output = input.NormalizeSongTag(new List<MusicBrainzTagMap>{
             new() {
                 SpotifyTag = "Wasted Little DJ's",
                 MusicBrainzTag = "Wasted Little DJs"
             }
-        }, Models.NormalizeMode.Strict);
+        }, normalizeMode);
 
         // Assert
         Assert.Equal(expected, output);
-    } 
+    }
 }
 

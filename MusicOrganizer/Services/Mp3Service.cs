@@ -11,17 +11,26 @@ public static class Mp3Service
         {
             mp3Directories.DirectoryInfo
         };
-        foreach (var (subdir, files) in from dir in directories
-                                        let subdir = dir.EnumerateDirectories().Select(sd => new Mp3DirectoryInfo(sd))
-                                        let files = dir.EnumerateFiles().ToList()
-                                        select (subdir, files))
+
+        foreach (var (subdir, files) in Directories(directories))
         {
             files.AddRange(subdir.SelectMany(sd => sd.EnumerateMp3s(output)));
-            foreach (var (f, mp3Tags) in from f in files
-                                         where f.FullName.EndsWith(".mp3") && !f.Name.StartsWith("._")
-                                         let mp3Tags = f.ParseMp3Tags()
-                                         where mp3Tags != null
-                                         select (f, mp3Tags))
+            IEnumerable<(FileInfo f, TagLib.File mp3Tags)> enumerable()
+            {
+                foreach (var f in files)
+                {
+                    if (f.FullName.EndsWith(".mp3") && !f.Name.StartsWith("._"))
+                    {
+                        var mp3Tags = f.ParseMp3Tags();
+                        if (mp3Tags != null)
+                        {
+                            yield return (f, mp3Tags);
+                        }
+                    }
+                }
+            }
+
+            foreach (var (f, mp3Tags) in enumerable())
             {
                 if (!mp3Tags.PossiblyCorrupt)
                 {
@@ -37,6 +46,20 @@ public static class Mp3Service
         }
 
         return mp3Files;
+    }
+
+    private static IEnumerable<(IEnumerable<Mp3DirectoryInfo> subdir, List<FileInfo> files)> Directories(List<DirectoryInfo>? directories)
+    {
+        if (directories == null)
+        {
+            throw new InvalidOperationException("Mp3TagService.Directories: Parameter must not be null.");
+        }
+        foreach (var dir in directories)
+        {
+            var subdir = dir.EnumerateDirectories().Select(sd => new Mp3DirectoryInfo(sd));
+            var files = dir.EnumerateFiles().ToList();
+            yield return (subdir, files);
+        }
     }
 
 }

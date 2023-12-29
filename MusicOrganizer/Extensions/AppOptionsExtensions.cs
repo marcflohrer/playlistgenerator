@@ -21,16 +21,16 @@ public static class AppOptionsExtensions
         }
     }
 
-    public static List<FileInfo> ResumeOrEnumerateMp3sInMainDir(this AppOptions appOptions)
+    public static List<FileInfo>? ResumeOrEnumerateMp3sInMainDir(this AppOptions appOptions)
     {
         return appOptions.ResumeOrEnumerateMp3s(appOptions.MusicDirectory, appOptions.ResumeMainFiles);
     }
 
-    private static List<FileInfo> ResumeOrEnumerateMp3s(this AppOptions appOptions, Mp3DirectoryInfo mp3DirectoryInfos, FileInfo resumeFile)
+    private static List<FileInfo>? ResumeOrEnumerateMp3s(this AppOptions appOptions, Mp3DirectoryInfo mp3DirectoryInfos, FileInfo resumeFile)
     {
         var result = mp3DirectoryInfos
             .ResumeOrEnumerateMp3s(appOptions.LogFile!, resumeFile);
-        Logger.WriteLine(appOptions.LogFile, $"{DateTime.Now} Found {result.Count} mp3 files in main directory");
+        Logger.WriteLine(appOptions.LogFile, $"{DateTime.Now} Found {result?.Count ?? null} mp3 files in main directory");
         return result;
     }
 }

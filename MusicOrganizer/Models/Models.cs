@@ -37,7 +37,7 @@ public static class Mp3InfoExtensions
             || !File.Exists(mp3Info.FilePath);
 
     public static string NormalizedMainInterpret(this Mp3Info mp3Info, IList<MusicBrainzTagMap> tagMaps)
-        => Mp3TagService.NormalizeSongTag(mp3Info.MainArtist, tagMaps, NormalizeMode.Strict);
+        => Mp3TagService.NormalizeSongTag(mp3Info.MainArtist, tagMaps, NormalizeMode.StrictInterpret);
 
     public static string NormalizedTitle(this Mp3Info mp3Info, IList<MusicBrainzTagMap> tagMaps)
         => Mp3TagService.NormalizeSongTag(mp3Info.Title, tagMaps, NormalizeMode.Strict);

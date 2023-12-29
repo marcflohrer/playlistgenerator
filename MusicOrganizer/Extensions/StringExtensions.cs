@@ -76,16 +76,19 @@ public static partial class StringExtensions
     public static string RemoveContentAfterDash(this string text, NormalizeMode normalizeMode) => RemoveContentAfter(text, " - ", normalizeMode);
 
     public static string RemoveContentAfterAmpersand(this string text, NormalizeMode normalizeMode) => RemoveContentAfter(text, " & ", normalizeMode);
+    public static string RemoveContentAfterVersus(this string text, NormalizeMode normalizeMode) => RemoveContentAfter(text, " Vs ", normalizeMode);
+
+    public static string RemoveContentAfterVersusDot(this string text, NormalizeMode normalizeMode) => RemoveContentAfter(text, " Vs. ", normalizeMode);
 
     public static string RemoveContentAfter(this string text, string commentSign, NormalizeMode normalizeMode)
     {
-        if (normalizeMode != NormalizeMode.Strict)
+        if (normalizeMode == NormalizeMode.Loose)
         {
             return text;
         }
         var transliterated = text.Transliterate();
-        var containsDash = transliterated.Contains(commentSign, StringComparison.CurrentCulture);
-        return transliterated[..(containsDash ? transliterated.IndexOf(commentSign)
+        var containsComment = transliterated.Contains(commentSign, StringComparison.InvariantCultureIgnoreCase);
+        return transliterated[..(containsComment ? transliterated.IndexOf(commentSign, StringComparison.InvariantCultureIgnoreCase)
                                     : transliterated.Length)]
                                     .Trim();
     }

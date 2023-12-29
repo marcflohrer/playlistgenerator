@@ -35,17 +35,17 @@ public static class CreatePlaylistExtensions
                 }
                 else
                 {
-                    if (!playlistMp3File.Mp3Info.IsMissing())
+                    if (playlistMp3File.Mp3Info.IsMissing())
+                    {
+                        playlistContent.AppendLine($"{commentOut}{playlistMp3File.Mp3Info.Interpret.FirstOrDefault()}/{playlistMp3File.Mp3Info.Title}.ismissing");
+                    }
+                    else
                     {
                         var playListEntry = PlaylistService.CreatePlaylistEntry(mainDir, new FileInfo(playlistMp3File.Mp3Info.FilePath), output);
                         if (!string.IsNullOrWhiteSpace(playListEntry))
                         {
                             playlistContent.AppendLine($"{playListEntry}");
                         }
-                    }
-                    else
-                    {
-                        playlistContent.AppendLine($"{commentOut}{playlistMp3File.Mp3Info.Interpret.FirstOrDefault()}/{playlistMp3File.Mp3Info.Title}.mp3");
                     }
                 }
             }

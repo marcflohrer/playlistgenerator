@@ -1,18 +1,23 @@
 ﻿using MusicOrganizer.Models;
 using MusicOrganizer.Services;
+using static MusicOrganizer.Services.Mp3TagService;
 
 namespace MusicOrganizer.Extensions;
 
 public static class FindDuplicatesExtensions
 {
 
-    public static List<Mp3TagService.FileTags>? ResumeOrScanMp3Tags(this List<FileInfo>? mp3Files, FileInfo resumeTags, FileInfo logFile)
+    public static List<FileTags>? ResumeOrScanMp3Tags(this List<FileInfo>? mp3Files, FileInfo resumeTags, FileInfo logFile)
     {
-        var fileTags = ResumeService.LoadResumeTagsPoint(resumeTags) ?? [];
-        if (fileTags.Count == 0)
+        List<FileTags>? fileTags;
+        if (!resumeTags?.Exists ?? true)
         {
             fileTags = mp3Files?.GetMp3Info(logFile);
             ResumeService.StoreResumeTagsPoint(resumeTags, fileTags ?? []);
+        }
+        else
+        {
+            fileTags = ResumeService.LoadResumeTagsPoint(resumeTags) ?? [];
         }
         Logger.WriteLine(logFile, $"{DateTime.Now} Tag Scan on mp3 files in main directory finished");
         return fileTags;

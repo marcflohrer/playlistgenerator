@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Text;
 using MusicOrganizer.Extensions;
 using MusicOrganizer.Models;
 
@@ -10,8 +11,12 @@ namespace MusicOrganizer.Services;
 public static class Mp3TagService
 {
     public record FileTags(string FilePath, Mp3Info Mp3Info);
-    public static List<FileTags> GetMp3Info(this List<FileInfo> files, FileInfo? output)
+    public static List<FileTags> GetMp3Info(this List<FileInfo>? files, FileInfo? output)
     {
+        if (files == null)
+        {
+            throw new InvalidOperationException("GetMp3Info: Files must not be null.");
+        }
         var fileTags = new List<FileTags>();
         foreach (var f in files)
         {
@@ -37,21 +42,25 @@ public static class Mp3TagService
     public static Dictionary<string, SongLocations> NormalizeFileTags(IList<FileTags> mainDirFileTags, IList<MusicBrainzTagMap> tagMaps)
     {
         var mp3Files = new Dictionary<string, SongLocations>();
-        foreach (var f in mainDirFileTags)
+        foreach (var (mp3Info, normalizedSongKey) in from f in mainDirFileTags
+                                                     let mp3Info = f.Mp3Info
+                                                     let normalizedTitle = NormalizeSongTag($"{mp3Info.Title}", tagMaps, NormalizeMode.Loose)
+                                                     let normalizedInterpret = NormalizeSongTag($"{string.Join(',', mp3Info.Interpret)}", tagMaps, NormalizeMode.Loose)
+                                                     let normalizedSongKey = new StringBuilder(normalizedTitle).Append(" + ").Append(normalizedInterpret).ToString()
+                                                     select (mp3Info, normalizedSongKey))
         {
-            var mp3Info = f.Mp3Info;
-            var normalizedTitle = NormalizeSongTag($"{mp3Info.Title} + {string.Join(',', mp3Info.Interpret)}", tagMaps, NormalizeMode.Loose);
-            if (!mp3Files.TryGetValue(normalizedTitle, out var songInfo))
+            if (!mp3Files.TryGetValue(normalizedSongKey, out var songInfo))
             {
-                songInfo = new SongLocations(normalizedTitle, [mp3Info]);
+                songInfo = new SongLocations(normalizedSongKey, [mp3Info]);
             }
             else
             {
                 songInfo.Mp3Infos.Add(mp3Info);
-                songInfo = new SongLocations(normalizedTitle, songInfo.Mp3Infos);
-                mp3Files.Remove(normalizedTitle);
+                songInfo = new SongLocations(normalizedSongKey, songInfo.Mp3Infos);
+                mp3Files.Remove(normalizedSongKey);
             }
-            mp3Files.Add(normalizedTitle, songInfo);
+
+            mp3Files.Add(normalizedSongKey, songInfo);
         }
 
         return mp3Files;
@@ -94,12 +103,14 @@ public static class Mp3TagService
         foreach (var f in fileTags)
         {
             var mp3Info = f.Mp3Info;
-            var normalizedTitle = NormalizeSongTag($"{mp3Info.Title} + {string.Join(',', mp3Info.Interpret)}", tagMaps, NormalizeMode.Loose);
+            var normalizedTitle = NormalizeSongTag($"{mp3Info.Title}", tagMaps, NormalizeMode.Loose);
+            var normalizedInterpret = NormalizeSongTag($"{string.Join(',', mp3Info.Interpret)}", tagMaps, NormalizeMode.Loose);
+            var normalizedSongKey = new StringBuilder(normalizedTitle).Append(" + ").Append(normalizedInterpret).ToString();
             var file = new FileInfo(f.FilePath);
             var addSongInfo = false;
-            if (!mp3Files.TryGetValue(normalizedTitle, out var songInfo))
+            if (!mp3Files.TryGetValue(normalizedSongKey, out var songInfo))
             {
-                songInfo = new SongLocations(normalizedTitle, [mp3Info]);
+                songInfo = new SongLocations(normalizedSongKey, [mp3Info]);
                 addSongInfo = true;
             }
             else
@@ -108,14 +119,14 @@ public static class Mp3TagService
                 if (!songInfo.Mp3Infos.Any(mp3 => mp3.FilePath.Equals(filePathCandidateToAdd, StringComparison.InvariantCultureIgnoreCase)))
                 {
                     songInfo.Mp3Infos.Add(mp3Info);
-                    songInfo = new SongLocations(normalizedTitle, songInfo.Mp3Infos);
-                    mp3Files.Remove(normalizedTitle);
+                    songInfo = new SongLocations(normalizedSongKey, songInfo.Mp3Infos);
+                    mp3Files.Remove(normalizedSongKey);
                     addSongInfo = true;
                 }
             }
             if (addSongInfo)
             {
-                mp3Files.Add(normalizedTitle, songInfo);
+                mp3Files.Add(normalizedSongKey, songInfo);
             }
         }
 
@@ -145,15 +156,22 @@ public static class Mp3TagService
         {
             return string.Empty;
         }
-        return title
+        var normalizedTag = title
             .ReplaceSpotifyTagErrors(musicBrainsTagMap)
             .ToLowerInvariant()
-            .ReplaceRockNRoll()
-            .RemoveContentAfterDash(normalizeMode)
-            .RemoveContentAfterAmpersand(normalizeMode)
-            .RemoveContentInBrackets()
-            .RemoveFeaturingSuffix()
-            .RemovePunctuation()
-            .ToM3uCompliantPath().Text;
+            .RemoveContentAfterDash(normalizeMode);
+
+        if (normalizeMode == NormalizeMode.StrictInterpret)
+        {
+            normalizedTag = normalizedTag.RemoveContentAfterAmpersand(normalizeMode);
+            normalizedTag = normalizedTag.RemoveContentAfterVersus(normalizeMode);
+            normalizedTag = normalizedTag.RemoveContentAfterVersusDot(normalizeMode);
+        }
+        normalizedTag = normalizedTag.RemoveContentInBrackets()
+                                    .RemoveFeaturingSuffix()
+                                    .RemovePunctuation()
+                                    .ToM3uCompliantPath()
+                                    .Text;
+        return normalizedTag;
     }
 }

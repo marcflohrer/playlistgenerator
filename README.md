@@ -2,7 +2,7 @@
 
 ## Description
 
-Importify is a .NET application designed to import CSV music playlists exported from Spotify using [Exportify](https://exportify.net/). It organizes your local music library and creates m3u playlists based on the provided CSV files. The application now includes a feature for mapping music tags between Spotify and MusicBrainz or other MP3 tag databases, facilitating better synchronization of song metadata.
+Importify is a .NET application designed to import CSV music playlists exported from Spotify using [Exportify](https://exportify.net/). It creates m3u playlists based on the provided CSV files. The application now includes a feature for mapping music tags between Spotify and MusicBrainz or other MP3 tag databases, facilitating better synchronization of song metadata.
 
 ## Features
 
