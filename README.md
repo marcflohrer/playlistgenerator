@@ -2,7 +2,7 @@
 
 ## Description
 
-Importify is a .NET application designed to import CSV music playlists exported from Spotify using [Exportify](https://exportify.net/). It organizes your local music library and creates m3u playlists based on the provided CSV files. It now includes a feature for mapping music tags between Spotify and MusicBrainz or other MP3 tag databases.
+Importify is a .NET application designed to import CSV music playlists exported from Spotify using [Exportify](https://exportify.net/). It organizes your local music library and creates m3u playlists based on the provided CSV files. The application now includes a feature for mapping music tags between Spotify and MusicBrainz or other MP3 tag databases, facilitating better synchronization of song metadata.
 
 ## Features
 
@@ -32,11 +32,11 @@ Importify is a .NET application designed to import CSV music playlists exported 
    - Update the "program" path to point to the built `MusicOrganizer.dll`.
    - Set the "args" with the paths to your music directory (`-m`) and CSV directory (`-c`).
 4. Run the application using VS Code or .NET CLI.
-5. Optionally, configure tag mapping in `appsettings.json`.
+5. Optionally, configure tag mapping in `appsettings.json` for any discrepancies in song metadata.
 
 ## Configuration
 
-In case the song is spelled differently in the spotify playlist and you do not want to fiddle around with your mp3 tags you can add a tag mapping from the spotify tag to way the song is tagged in your local music library. You will find the files that are not found in the file called 'logger.txt' in the folder you passed as parameter '-m'.
+To address discrepancies in song metadata between Spotify playlists and your local music library, you can use the tag mapping feature. This is particularly useful if you prefer not to modify your MP3 tags manually. Unmatched files will be listed in 'logger.txt' in the directory specified by the '-m' parameter.
 
 - Modify the application's behavior by adjusting the arguments in the `launch.json` file.
 - For tag mapping, add your mappings to `appsettings.json` under "TagMismatchMap". Example:
