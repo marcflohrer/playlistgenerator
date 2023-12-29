@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
 using MusicOrganizer.Models;
 using MusicOrganizer.Services;
 
@@ -16,9 +17,10 @@ public static class CreatePlaylistExtensions
             {
                 playlist.Delete();
             }
-            Logger.WriteLine(playlist, "#EXTM3U");
-            Logger.WriteLine(playlist, "#EXTENC: UTF-8");
-            Logger.WriteLine(playlist, $"#PLAYLIST: {playlist.Name.Replace(".m3u8", string.Empty).Replace(".m3u", string.Empty)}");
+            var playlistContent = new StringBuilder();
+            playlistContent.AppendLine("#EXTM3U");
+            playlistContent.AppendLine("#EXTENC: UTF-8");
+            playlistContent.AppendLine($"#PLAYLIST: {playlist.Name.Replace(".m3u8", string.Empty).Replace(".m3u", string.Empty)}");
             foreach (var playlistMp3File in playlistMp3Files!)
             {
                 var commentOut = string.Empty;
@@ -26,7 +28,7 @@ public static class CreatePlaylistExtensions
                 {
                     commentOut = "#";
                 }
-                Logger.WriteLine(playlist, $"{commentOut}#EXTINF:{playlistMp3File?.Mp3Info?.DurationSeconds},{string.Join('&', playlistMp3File?.Mp3Info?.Interpret ?? [])} - {playlistMp3File?.Mp3Info?.Title ?? string.Empty}");
+                playlistContent.AppendLine($"{commentOut}#EXTINF:{playlistMp3File?.Mp3Info?.DurationSeconds},{string.Join('&', playlistMp3File?.Mp3Info?.Interpret ?? [])} - {playlistMp3File?.Mp3Info?.Title ?? string.Empty}");
                 if (playlistMp3File?.Mp3Info?.FilePath == null)
                 {
                     Logger.WriteLine(output, $"Path is null. {JsonSerializer.Serialize(playlistMp3File?.Mp3Info)}");
@@ -38,19 +40,21 @@ public static class CreatePlaylistExtensions
                         var playListEntry = PlaylistService.CreatePlaylistEntry(mainDir, new FileInfo(playlistMp3File.Mp3Info.FilePath), output);
                         if (!string.IsNullOrWhiteSpace(playListEntry))
                         {
-                            Logger.WriteLine(playlist, $"{playListEntry}");
+                            playlistContent.AppendLine($"{playListEntry}");
                         }
                     }
                     else
                     {
-                        Logger.WriteLine(playlist, $"{commentOut}{playlistMp3File.Mp3Info.Interpret.FirstOrDefault()}/{playlistMp3File.Mp3Info.Title}.mp3");
+                        playlistContent.AppendLine($"{commentOut}{playlistMp3File.Mp3Info.Interpret.FirstOrDefault()}/{playlistMp3File.Mp3Info.Title}.mp3");
                     }
                 }
             }
+            Logger.WriteLine(playlist, playlistContent.ToString());
         }
         catch (Exception ex)
         {
             Logger.WriteLine(output, $"{ex.Message};{ex.StackTrace}");
+            throw;
         }
     }
 

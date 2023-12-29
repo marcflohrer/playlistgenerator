@@ -34,13 +34,13 @@ public static class Mp3TagService
                                                              .ToList();
     }
 
-    public static Dictionary<string, SongLocations> NormalizeFileTags(IList<FileTags> mainDirFileTags)
+    public static Dictionary<string, SongLocations> NormalizeFileTags(IList<FileTags> mainDirFileTags, IList<MusicBrainzTagMap> tagMaps)
     {
         var mp3Files = new Dictionary<string, SongLocations>();
         foreach (var f in mainDirFileTags)
         {
             var mp3Info = f.Mp3Info;
-            var normalizedTitle = NormalizeSongTag($"{mp3Info.Title} + {string.Join(',', mp3Info.Interpret)}", NormalizeMode.Loose);
+            var normalizedTitle = NormalizeSongTag($"{mp3Info.Title} + {string.Join(',', mp3Info.Interpret)}", tagMaps, NormalizeMode.Loose);
             if (!mp3Files.TryGetValue(normalizedTitle, out var songInfo))
             {
                 songInfo = new SongLocations(normalizedTitle, [mp3Info]);
@@ -67,15 +67,16 @@ public static class Mp3TagService
         }
     }
 
-    public record ScanResult(bool FoundDuplicates, IList<FileTags> FileTags);
+    public record ScanResult(bool FoundDuplicates, SongsOfArtists SongsOfArtists);
 
-    public static void CreateM3uPlaylists(this ScanResult mainDirScanResult, AppOptions appOptions)
+    public static void CreateM3uPlaylists(this ScanResult mainDirScanResult, IList<MusicBrainzTagMap> tagMaps, AppOptions appOptions)
     {
         foreach (var csvFile in appOptions.CsvPlaylistFiles)
         {
             Logger.WriteLine(appOptions.LogFile, $"--------------{Environment.NewLine}PlayList {csvFile.Name}{Environment.NewLine}--------------");
             var spotifyPlaylist = CsvToMp3InfoParser.ToMp3InfoList(csvFile);
             spotifyPlaylist.ToM3uPlaylist(
+                tagMaps,
                 mainDirScanResult,
                 appOptions.ToPlaylistFile(csvFile),
                 appOptions.MusicDirectory,
@@ -85,6 +86,7 @@ public static class Mp3TagService
 
     public static ScanResult CreateDeletionScriptForDuplicates(
         this List<FileTags> fileTags,
+        IList<MusicBrainzTagMap> tagMaps,
         FileInfo? deletionScript,
         FileInfo? logFile)
     {
@@ -92,7 +94,7 @@ public static class Mp3TagService
         foreach (var f in fileTags)
         {
             var mp3Info = f.Mp3Info;
-            var normalizedTitle = NormalizeSongTag($"{mp3Info.Title} + {string.Join(',', mp3Info.Interpret)}", NormalizeMode.Loose);
+            var normalizedTitle = NormalizeSongTag($"{mp3Info.Title} + {string.Join(',', mp3Info.Interpret)}", tagMaps, NormalizeMode.Loose);
             var file = new FileInfo(f.FilePath);
             var addSongInfo = false;
             if (!mp3Files.TryGetValue(normalizedTitle, out var songInfo))
@@ -125,22 +127,33 @@ public static class Mp3TagService
             duplicateMp3Files.Add(kvp.Key, kvp.Value);
         }
         duplicateMp3Files?.LogDuplicates(logFile);
-        if (duplicateMp3Files != null && duplicateMp3Files.Any())
+        if (duplicateMp3Files != null && duplicateMp3Files.Count != 0)
         {
             duplicateMp3Files?.CreateDeletionScript(logFile, deletionScript);
-            Logger.WriteLine(logFile, $"{DateTime.Now} Aborting as there are duplicate mp3 songs.");
-            return new ScanResult(true, fileTags);
+            Logger.WriteLine(logFile, $"{DateTime.Now} Warning: There are duplicate mp3 songs.");
+            return new ScanResult(true, fileTags.ToSongsOfArtist(tagMaps, logFile));
         }
-        return new ScanResult(false, fileTags);
+        return new ScanResult(false, fileTags.ToSongsOfArtist(tagMaps, logFile));
     }
 
-    public static string NormalizeSongTag(this string title, NormalizeMode normalizeMode)
+    public static string NormalizeSongTag(
+        this string? title,
+        IList<MusicBrainzTagMap> musicBrainsTagMap,
+        NormalizeMode normalizeMode)
     {
-        return title.ToLowerInvariant()
+        if (string.IsNullOrEmpty(title))
+        {
+            return string.Empty;
+        }
+        return title
+            .ReplaceSpotifyTagErrors(musicBrainsTagMap)
+            .ToLowerInvariant()
+            .ReplaceRockNRoll()
             .RemoveContentAfterDash(normalizeMode)
-            .RemoveFeaturingSuffux()
-            .RemovePunctuation()
+            .RemoveContentAfterAmpersand(normalizeMode)
             .RemoveContentInBrackets()
+            .RemoveFeaturingSuffix()
+            .RemovePunctuation()
             .ToM3uCompliantPath().Text;
     }
 }

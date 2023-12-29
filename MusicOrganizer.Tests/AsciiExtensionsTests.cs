@@ -1,4 +1,5 @@
 ﻿using MusicOrganizer.Extensions;
+using MusicOrganizer.Models;
 using MusicOrganizer.Services;
 
 namespace MusicOrganizer.Tests;
@@ -46,9 +47,19 @@ public class AsciiExtensionsTests
     [InlineData("Jennifer Rostock feat. Feine Sahne Fischfilet", "jenniferrostock")]
     [InlineData("Hard-FI", "hard-fi")]
     [InlineData("Hard‐Fi", "hard-fi")]
+    [InlineData("Martin Solveig & Dragonettes", "martinsolveig")]
+    [InlineData("I Love It (feat. Charli XCX)", "iloveit")]
+    [InlineData("Many Shades Of Black - Performed by The Raconteurs and Adele", "manyshadesofblack")]
+    [InlineData("We Are Your Friends - Justice Vs Simian", "weareyourfriends")]
+    [InlineData("Wasted Little DJ's", "wastedlittledjs")]
     public static void NormalizeSongTag_WhenBrackets_ThenOnlyTextBeforeBracketsIsReturned(string input, string expected)
     {
-        var output = input.NormalizeSongTag(Models.NormalizeMode.Strict);
+        var output = input.NormalizeSongTag(new List<MusicBrainzTagMap>{
+            new() {
+                SpotifyTag = "Wasted Little DJ's",
+                MusicBrainzTag = "Wasted Little DJs"
+            }
+        }, Models.NormalizeMode.Strict);
 
         // Assert
         Assert.Equal(expected, output);

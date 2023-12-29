@@ -109,14 +109,15 @@ public class ExportifyPlaylist
         {
             releaseYear = DateTime.Parse(ReleaseDate).Year;
         }
+        var artists = GetArtistList(ArtistNames);
         return new Mp3Info(
             string.Empty,
             SpotifyId,
             0,
-            GetArtistList(ArtistNames),
-            GetArtistList(ArtistNames),
+            artists.ToArray()[0],
+            artists,
+            artists,
             TrackName,
-            TrackName.NormalizeSongTag(NormalizeMode.Strict),
             -1,
             string.Empty,
             releaseYear,
@@ -124,9 +125,7 @@ public class ExportifyPlaylist
     }
 
     private static string[] GetArtistList(string artistNames)
-    {
-        return artistNames.Split(",").Select(an => an.Split('\u0026')).SelectMany(an => an).Select(an => an.Trim()).ToArray();
-    }
+        => artistNames.Split(",").Select(an => an.Split('\u0026')).SelectMany(an => an).Select(an => an.Trim()).ToArray();
 
     private int GetDurationInSeconds()
     {

@@ -2,7 +2,7 @@
 
 ## Description
 
-Importify is a .NET application designed to import CSV music playlists exported from Spotify using [Exportify](https://exportify.net/). It organizes your local music library and creates m3u playlists based on the provided CSV files.
+Importify is a .NET application designed to import CSV music playlists exported from Spotify using [Exportify](https://exportify.net/). It organizes your local music library and creates m3u playlists based on the provided CSV files. It now includes a feature for mapping music tags between Spotify and MusicBrainz or other MP3 tag databases.
 
 ## Features
 
@@ -10,7 +10,8 @@ Importify is a .NET application designed to import CSV music playlists exported 
 - Identifies and logs duplicate MP3 files.
 - Deletes empty subdirectories in the music directory.
 - Converts Spotify CSV playlists to m3u format.
-- Supports operation resumption. This means that if you changed the files in your music directory you have to delete the resume files for a new scan.
+- Supports operation resumption.
+- Maps music tags between Spotify and MusicBrainz or other MP3 tag databases.
 
 ## Requirements
 
@@ -31,12 +32,25 @@ Importify is a .NET application designed to import CSV music playlists exported 
    - Update the "program" path to point to the built `MusicOrganizer.dll`.
    - Set the "args" with the paths to your music directory (`-m`) and CSV directory (`-c`).
 4. Run the application using VS Code or .NET CLI.
+5. Optionally, configure tag mapping in `appsettings.json`.
 
 ## Configuration
 
+In case the song is spelled differently in the spotify playlist and you do not want to fiddle around with your mp3 tags you can add a tag mapping from the spotify tag to way the song is tagged in your local music library. You will find the files that are not found in the file called 'logger.txt' in the folder you passed as parameter '-m'.
+
 - Modify the application's behavior by adjusting the arguments in the `launch.json` file.
-- The "program" argument should point to the `MusicOrganizer.dll` file.
-- The "args" should include paths to your music directory and CSV directory.
+- For tag mapping, add your mappings to `appsettings.json` under "TagMismatchMap". Example:
+
+```json
+{
+  "TagMismatchMap":
+  [
+    { "SpotifyTag":"Girls Who Play Guitar", "MusicBrainzTag":"Girls Who Play Guitars" },
+    { "SpotifyTag":"Wasted Little DJ's", "MusicBrainzTag":"Wasted Little DJs" },
+    { "SpotifyTag":"I Gotta Feelin", "MusicBrainzTag":"I Got a Feelin" }
+  ]
+}
+```
 
 ## Disclaimer
 

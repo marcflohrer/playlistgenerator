@@ -36,17 +36,19 @@ public static class FileInfoExtensions
                 tags.CleanTags(output);
             }
         }
-        var mp3Info = new Mp3Info(f.FullName,
-                           f.Md5(),
-                           f.Length,
-                           tags.Performers,
-                           tags.AlbumArtists,
-                           tags.Title,
-                           tags.Title.NormalizeSongTag(NormalizeMode.Loose),
-                           (int)tags.Track,
-                           tags.AmazonId,
-                           (int)tags.Year,
-                           duration);
+        var mainArtist = tags.Performers[0];
+        var mp3Info = new Mp3Info(
+            f.FullName,
+            f.Md5(),
+            f.Length,
+            mainArtist,
+            tags.Performers,
+            tags.AlbumArtists,
+            tags.Title,
+            (int)tags.Track,
+            tags.AmazonId,
+            (int)tags.Year,
+            duration);
         return mp3Info;
     }
 }

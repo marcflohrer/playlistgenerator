@@ -8,6 +8,7 @@ public static class M3uPlaylistCreator
 {
     public static void ToM3uPlaylist(
         this IList<Mp3Info> playlistEntries,
+        IList<MusicBrainzTagMap> tagMaps,
         ScanResult mainDirScanResult,
         FileInfo playList,
         Mp3DirectoryInfo mainDir,
@@ -16,62 +17,36 @@ public static class M3uPlaylistCreator
         var mp3InfoPlaylist = new List<FileTags>();
         foreach (var playlistEntry in playlistEntries)
         {
-            var matchingFileTagsInterprets = GetExactMatchingFileTagsInterprets(mainDirScanResult, playlistEntry);
-            var matchingFileTags = new List<FileTags>();
-            if (matchingFileTagsInterprets.Count == 0)
+            var songsOfArtist = GetSongsOfArtistInLocalLibrary(mainDirScanResult.SongsOfArtists, playlistEntry.NormalizedMainInterpret(tagMaps));
+            var matchingSongInLocalLibrary = GetSongsForTitleForGivenArtist(songsOfArtist, playlistEntry.NormalizedTitle(tagMaps));
+            if (matchingSongInLocalLibrary != null)
             {
-                var interprets = playlistEntry.Interpret;
-                foreach (var interpret in interprets)
-                {
-                    var normalizedInterpret = interpret.NormalizeSongTag(NormalizeMode.Strict);
-                    foreach (var fileTag in mainDirScanResult.FileTags)
-                    {
-                        foreach (var fileTagInterpret in fileTag.Mp3Info.Interpret)
-                        {
-                            var normalizedFileTagInterpret = fileTagInterpret.NormalizeSongTag(NormalizeMode.Strict);
-                            if (normalizedFileTagInterpret.StartsWith(normalizedInterpret) ||
-                                normalizedInterpret.StartsWith(normalizedFileTagInterpret))
-                            {
-                                matchingFileTagsInterprets.Add(fileTag);
-                                continue;
-                            }
-                        }
-                    }
-                }
+                mp3InfoPlaylist.Add(new FileTags(string.Empty, matchingSongInLocalLibrary!));
             }
-
-            if (matchingFileTagsInterprets.Count != 0)
+            else
             {
-                matchingFileTags = matchingFileTagsInterprets
-                                        .Where(sr => sr.Mp3Info.NormalizedSongName.Contains(playlistEntry.NormalizedSongName)
-                                            || playlistEntry.NormalizedSongName.Contains(sr.Mp3Info.NormalizedSongName))
-                                        .ToList();
+                Logger.WriteLine(logFile, $"No match found '{playlistEntry.Title}' by '{string.Join(',', playlistEntry.Interpret)}' from '{playlistEntry.Year}'");
             }
-
-            if (matchingFileTags == null || matchingFileTags.Count == 0)
-            {
-                Logger.WriteLine(logFile, $"Nothing found for Song {playlistEntry.Title} by {string.Join(',', playlistEntry.Interpret)} from {playlistEntry.Year}");
-                mp3InfoPlaylist.Add(new FileTags(string.Empty, playlistEntry));
-                continue;
-            }
-
-            mp3InfoPlaylist.Add(matchingFileTags.FirstOrDefault()!);
         }
 
-        NormalizeFileTags(mp3InfoPlaylist)
+        NormalizeFileTags(mp3InfoPlaylist, tagMaps)
             .RemoveDuplicates()
             .CreatePlaylistFile(playList, mainDir.DirectoryInfo, logFile);
     }
 
-    private static List<FileTags> GetExactMatchingFileTagsInterprets(ScanResult mainDirScanResult, Mp3Info playlistEntry)
+    private static SongsByTitle GetSongsOfArtistInLocalLibrary(SongsOfArtists songsOfArtists, string mainArtist)
     {
-        return mainDirScanResult.FileTags.Where(sr => sr.Mp3Info.Interpret
-                                                        .ToOrderedList()
-                                                    .Select(i => i.NormalizeSongTag(NormalizeMode.Strict))
-                                                        .SequenceEqual(playlistEntry.Interpret
-                                                            .ToOrderedList()
-                                                            .Select(i => i.NormalizeSongTag(NormalizeMode.Strict)), StringComparer.OrdinalIgnoreCase))
-                                                .ToList();
+        var found = songsOfArtists.Value.TryGetValue(mainArtist, out var songsByTitle);
+        if (!found)
+        {
+            songsByTitle = new SongsByTitle(Value: new Dictionary<string, Mp3Info>());
+        }
+        return songsByTitle!;
     }
+
+    private static Mp3Info? GetSongsForTitleForGivenArtist(SongsByTitle songsByTitle, string normalizedTitle) 
+        => !songsByTitle.Value.TryGetValue(normalizedTitle, out var matchingSongInLocalLibrary)
+                ? null
+                : matchingSongInLocalLibrary;
 }
 

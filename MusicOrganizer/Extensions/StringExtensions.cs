@@ -57,22 +57,42 @@ public static partial class StringExtensions
         return Regex.Replace(noSquareBracketsContent, "(.*)(\\{.*\\})(.*)", "$1$3");
     }
 
-    public static string RemoveContentAfterDash(this string text, NormalizeMode normalizeMode)
+    public static string ReplaceRockNRoll(this string text) => text.Replace("Rock \u0026 Roll", "rockroll", StringComparison.InvariantCultureIgnoreCase);
+
+    public static string ReplaceSpotifyTagErrors(this string text, IList<MusicBrainzTagMap> tagMaps)
+    {
+        var tagErrorsFixed = text;
+        foreach (var tagFix in from tagFix in tagMaps
+                               where tagErrorsFixed.Contains(tagFix.SpotifyTag, StringComparison.InvariantCultureIgnoreCase)
+                                     && !tagErrorsFixed.Contains(tagFix.MusicBrainzTag, StringComparison.InvariantCultureIgnoreCase)
+                               select tagFix)
+        {
+            tagErrorsFixed = tagErrorsFixed.Replace(tagFix.SpotifyTag, tagFix.MusicBrainzTag, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        return tagErrorsFixed;
+    }
+
+    public static string RemoveContentAfterDash(this string text, NormalizeMode normalizeMode) => RemoveContentAfter(text, " - ", normalizeMode);
+
+    public static string RemoveContentAfterAmpersand(this string text, NormalizeMode normalizeMode) => RemoveContentAfter(text, " & ", normalizeMode);
+
+    public static string RemoveContentAfter(this string text, string commentSign, NormalizeMode normalizeMode)
     {
         if (normalizeMode != NormalizeMode.Strict)
         {
             return text;
         }
         var transliterated = text.Transliterate();
-        var containsDash = transliterated.Contains(" - ", StringComparison.CurrentCulture);
-        return transliterated[..(containsDash ? transliterated.IndexOf(" - ")
+        var containsDash = transliterated.Contains(commentSign, StringComparison.CurrentCulture);
+        return transliterated[..(containsDash ? transliterated.IndexOf(commentSign)
                                     : transliterated.Length)]
                                     .Trim();
     }
 
-    public static string RemoveFeaturingSuffux(this string text)
-    {
-        return text.Contains("feat.") ? text[..text.IndexOf("feat.")].Trim() : text;
-    }
+    public static string RemoveFeaturingSuffix(this string text)
+        => text.Contains("feat.")
+            ? text[..text.IndexOf("feat.")].Trim()
+            : text;
 }
 
