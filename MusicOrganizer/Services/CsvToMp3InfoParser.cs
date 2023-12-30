@@ -6,7 +6,7 @@ namespace MusicOrganizer.Services;
 
 public static class CsvToMp3InfoParser
 {
-    public static IList<Mp3Info> ToMp3InfoList(this FileInfo csvFilePlayList)
+    public static IList<Mp3Info> ToMp3InfoList(this FileInfo csvFilePlayList, IList<MusicBrainzTagMap> tagMaps)
     {
         ArgumentNullException.ThrowIfNull(csvFilePlayList);
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
@@ -21,7 +21,7 @@ public static class CsvToMp3InfoParser
         var playlistEntries = new List<Mp3Info>();
         foreach (var playlistEntry in exportifyPlaylist)
         {
-            playlistEntries.Add(playlistEntry.ToPlaylistEntry());
+            playlistEntries.Add(playlistEntry.ToPlaylistEntry(tagMaps));
         }
         return playlistEntries;
     }

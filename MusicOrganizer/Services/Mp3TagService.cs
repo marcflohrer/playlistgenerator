@@ -11,16 +11,17 @@ namespace MusicOrganizer.Services;
 public static class Mp3TagService
 {
     public record FileTags(string FilePath, Mp3Info Mp3Info);
-    public static List<FileTags> GetMp3Info(this List<FileInfo>? files, FileInfo? output)
+
+    public static List<FileTags> GetMp3Info(this List<FileInfo>? files, IList<MusicBrainzTagMap> tagMaps, FileInfo? output)
     {
         if (files == null)
         {
             throw new InvalidOperationException("GetMp3Info: Files must not be null.");
         }
         var fileTags = new List<FileTags>();
-        foreach (var f in files)
+        foreach (FileInfo f in files)
         {
-            var mp3Info = f.GetMp3Info(output);
+            var mp3Info = f.GetMp3Info(tagMaps, output);
             if (mp3Info != null)
             {
                 fileTags.Add(new(f.FullName, mp3Info));
@@ -83,7 +84,7 @@ public static class Mp3TagService
         foreach (var csvFile in appOptions.CsvPlaylistFiles)
         {
             Logger.WriteLine(appOptions.LogFile, $"--------------{Environment.NewLine}PlayList {csvFile.Name}{Environment.NewLine}--------------");
-            var spotifyPlaylist = CsvToMp3InfoParser.ToMp3InfoList(csvFile);
+            var spotifyPlaylist = CsvToMp3InfoParser.ToMp3InfoList(csvFile, tagMaps);
             spotifyPlaylist.ToM3uPlaylist(
                 tagMaps,
                 mainDirScanResult,

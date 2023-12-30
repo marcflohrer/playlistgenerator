@@ -18,7 +18,7 @@ namespace MusicOrganizer
 
             appOptions
                 .ResumeOrEnumerateMp3sInMainDir()
-                .ResumeOrScanMp3Tags(appOptions.ResumeMainTags!, appOptions.LogFile!)!
+                .ResumeOrScanMp3Tags(appOptions.ResumeMainTags!, tagMaps, appOptions.LogFile!)!
                 .CreateDeletionScriptForDuplicates(tagMaps, appOptions.DeletionScript, appOptions.LogFile)
                 .CreateM3uPlaylists(tagMaps, appOptions);
             Logger.WriteLine(appOptions.LogFile, $"{DateTime.Now} Done.");

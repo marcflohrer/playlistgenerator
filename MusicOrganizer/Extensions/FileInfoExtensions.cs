@@ -8,18 +8,7 @@ namespace MusicOrganizer;
 
 public static class FileInfoExtensions
 {
-    public static string Md5(this FileInfo fileInfo)
-    {
-        using (var md5 = MD5.Create())
-        {
-            using var stream = System.IO.File.OpenRead(fileInfo.FullName);
-            var hash = md5.ComputeHash(stream);
-            return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-        }
-        throw new Exception();
-    }
-
-    public static Mp3Info GetMp3Info(this FileInfo f, FileInfo? output)
+    public static Mp3Info GetMp3Info(this FileInfo f, IList<MusicBrainzTagMap> tagMaps, FileInfo? output)
     {
         var tagLibFile = TagLib.File.Create(f.FullName);
         var duration = (int)tagLibFile.Properties.Duration.TotalSeconds;
@@ -36,10 +25,9 @@ public static class FileInfoExtensions
                 tags.CleanTags(output);
             }
         }
-        var mainArtist = tags.Performers[0].Split(" vs. ")[0].Split(" Vs. ")[0];
+        var mainArtist = Mp3TagService.NormalizeSongTag(tags.Performers[0], tagMaps, NormalizeMode.StrictInterpret);
         var mp3Info = new Mp3Info(
             f.FullName,
-            f.Md5(),
             f.Length,
             mainArtist,
             tags.Performers,

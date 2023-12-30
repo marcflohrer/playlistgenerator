@@ -60,7 +60,7 @@ public static class CreatePlaylistExtensions
 
     public static void PrintMp3Info(this Mp3Info? d, FileInfo? output, string deleteReason)
     {
-        Logger.WriteLine(output, $"{DateTime.Now} \t --> T: {d?.Title}; I: {string.Join(';', d?.Interpret ?? Array.Empty<string>())}; Reason: {deleteReason}; {d?.FilePath}; {d?.Md5Hash}; {d?.Number}; {string.Join(';', d?.AlbumArtists ?? Array.Empty<string>())}; Bytes : {d?.SizeInBytes}; AmazonId : {d?.AmazonId}; Year : {d?.Year}");
+        Logger.WriteLine(output, $"{DateTime.Now} \t --> T: {d?.Title}; I: {string.Join(';', d?.Interpret ?? Array.Empty<string>())}; Reason: {deleteReason}; {d?.FilePath}; {d?.Number}; {string.Join(';', d?.AlbumArtists ?? Array.Empty<string>())}; Bytes : {d?.SizeInBytes}; AmazonId : {d?.AmazonId}; Year : {d?.Year}");
     }
 }
 

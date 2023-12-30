@@ -7,12 +7,12 @@ namespace MusicOrganizer.Extensions;
 public static class FindDuplicatesExtensions
 {
 
-    public static List<FileTags>? ResumeOrScanMp3Tags(this List<FileInfo>? mp3Files, FileInfo resumeTags, FileInfo logFile)
+    public static List<FileTags>? ResumeOrScanMp3Tags(this List<FileInfo>? mp3Files, FileInfo resumeTags, IList<MusicBrainzTagMap> tagMaps, FileInfo logFile)
     {
         List<FileTags>? fileTags;
         if (!resumeTags?.Exists ?? true)
         {
-            fileTags = mp3Files?.GetMp3Info(logFile);
+            fileTags = mp3Files?.GetMp3Info(tagMaps, logFile);
             ResumeService.StoreResumeTagsPoint(resumeTags, fileTags ?? []);
         }
         else

@@ -20,7 +20,6 @@ public record SongLocations(string NormalizedTitle, List<Mp3Info> Mp3Infos);
 
 public record Mp3Info(
                     string FilePath,
-                    string Md5Hash,
                     long SizeInBytes,
                     string MainArtist,
                     string[] Interpret,

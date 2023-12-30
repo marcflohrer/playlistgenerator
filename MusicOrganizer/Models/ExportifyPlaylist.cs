@@ -1,5 +1,5 @@
 using CsvHelper.Configuration.Attributes;
-using static MusicOrganizer.Services.Mp3TagService;
+using MusicOrganizer.Extensions;
 
 namespace MusicOrganizer.Models;
 
@@ -98,7 +98,7 @@ public class ExportifyPlaylist
     [Name("Time Signature")]
     public string TimeSignature { get; set; } = "";
 
-    public Mp3Info ToPlaylistEntry()
+    public Mp3Info ToPlaylistEntry(IList<MusicBrainzTagMap> tagMaps)
     {
         var releaseYear = 0;
         if (ReleaseDate.Length == 4)
@@ -109,10 +109,10 @@ public class ExportifyPlaylist
         {
             releaseYear = DateTime.Parse(ReleaseDate).Year;
         }
-        var artists = GetArtistList(ArtistNames);
+        var fixedArtistNames = StringExtensions.ReplaceSpotifyTagErrors(ArtistNames, tagMaps);
+        var artists = GetArtistList(fixedArtistNames);
         return new Mp3Info(
             string.Empty,
-            SpotifyId,
             0,
             artists.ToArray()[0],
             artists,
