@@ -2,16 +2,16 @@
 
 ## Description
 
-Importify is a .NET application designed to import CSV music playlists exported from Spotify using [Exportify](https://exportify.net/). It creates m3u playlists based on the provided CSV files. The application now includes a feature for mapping music tags between Spotify and MusicBrainz or other MP3 tag databases, facilitating better synchronization of song metadata.
+Importify is a .NET application that imports CSV music playlists exported from Spotify using [Exportify](https://exportify.net/) and creates m3u playlists from them. The application now includes a feature for mapping music tags between Spotify and MusicBrainz or other MP3 tag databases, facilitating better synchronization of song metadata.
 
 ## Features
 
-- Scans and organizes local MP3 files.
-- Identifies and logs duplicate MP3 files.
-- Deletes empty subdirectories in the music directory.
-- Converts Spotify CSV playlists to m3u format.
-- Supports operation resumption.
-- Maps music tags between Spotify and MusicBrainz or other MP3 tag databases.
+- Scans and organizes local MP3 files
+- Identifies and logs duplicate MP3 files
+- Deletes empty subdirectories in the music directory
+- Converts Spotify CSV playlists to m3u format
+- Supports operation resumption
+- Maps music tags between Spotify and MusicBrainz or other MP3 tag databases
 
 ## Requirements
 
@@ -36,7 +36,7 @@ Importify is a .NET application designed to import CSV music playlists exported 
 
 ## Configuration
 
-To address discrepancies in song metadata between Spotify playlists and your local music library, you can use the tag mapping feature. This is particularly useful if you prefer not to modify your MP3 tags manually. Unmatched files will be listed in 'logger.txt' in the directory specified by the '-m' parameter.
+To address discrepancies in song metadata between Spotify playlists and your local music library, you can use the tag mapping feature. This is particularly useful if you prefer not to modify your MP3 tags manually. Unmatched files will be listed in 'logger.txt' in the directory specified by the '-m' parameter. Another reason to add a tag mapping is when the artist name contains a character, like in the band name 'Does It Offend You, Yeah?'. Due to parsing rules, everything after the comma is ignored, necessitating a tag mapping that removes the comma.
 
 - Modify the application's behavior by adjusting the arguments in the `launch.json` file.
 - For tag mapping, add your mappings to `appsettings.json` under "TagMismatchMap". Example:
@@ -47,14 +47,15 @@ To address discrepancies in song metadata between Spotify playlists and your loc
   [
     { "SpotifyTag":"Girls Who Play Guitar", "MusicBrainzTag":"Girls Who Play Guitars" },
     { "SpotifyTag":"Wasted Little DJ's", "MusicBrainzTag":"Wasted Little DJs" },
-    { "SpotifyTag":"I Gotta Feelin", "MusicBrainzTag":"I Got a Feelin" }
+    { "SpotifyTag":"I Gotta Feelin", "MusicBrainzTag":"I Got a Feelin" },
+    { "SpotifyTag":"Does It Offend You, Yeah?", "MusicBrainzTag":"Does It Offend You Yeah?" }
   ]
 }
 ```
 
 ## Disclaimer
 
-This software is provided "as is", without warranty of any kind. The author(s) and contributors are not responsible for any damage or loss of data. It is strongly recommended to use Importify only on a backup of your music files.
+This software is provided "as is", without warranty of any kind. The author(s) and contributors are not responsible for any damage or loss of data. Users are strongly recommended to first test Importify on a small subset of their music files and to use it only on a backup of their music library.
 
 ## License
 
