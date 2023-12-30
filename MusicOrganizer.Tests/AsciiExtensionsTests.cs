@@ -58,6 +58,7 @@ public class AsciiExtensionsTests
     [InlineData("Justice vs. Simian", true, "justice")]
     [InlineData("Justice Vs Simian", true, "justice")]
     [InlineData("Justice vs Simian", true, "justice")]
+    [InlineData("I Follow Rivers (Live @ Giel! - VARA/3FM)", true, "ifollowrivers")]
     public static void NormalizeSongTitle_WhenBrackets_ThenOnlyTextBeforeBracketsIsReturned(string input, bool isInterpret, string expected)
     {
         var normalizeMode = isInterpret ? NormalizeMode.StrictInterpret : NormalizeMode.Strict;

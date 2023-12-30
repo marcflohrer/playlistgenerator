@@ -1,6 +1,8 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Text;
+using System.Text.RegularExpressions;
 using AnyAscii;
 using MusicOrganizer.Models;
+using PowerArgs;
 
 namespace MusicOrganizer.Extensions;
 
@@ -25,6 +27,10 @@ public static partial class StringExtensions
         {"<", @"\<"},
         {">", @"\>"}
     };
+
+    private static IList<char> s_closingBrackets = new List<char> { ')', '}', ']' };
+
+    public static IList<char> ClosingBrackets { get => s_closingBrackets; set => s_closingBrackets = value; }
 
     public static string? EscapeSpecialChars(this string? filePath)
     {
@@ -88,9 +94,50 @@ public static partial class StringExtensions
         }
         var transliterated = text.Transliterate();
         var containsComment = transliterated.Contains(commentSign, StringComparison.InvariantCultureIgnoreCase);
+        var maxIndexOfNextClosingBracket = -1;
+        foreach (var cb in ClosingBrackets)
+        {
+            if (transliterated.IndexOf(cb) > maxIndexOfNextClosingBracket)
+            {
+                maxIndexOfNextClosingBracket = transliterated.IndexOf(cb);
+            }
+        }
+        if (maxIndexOfNextClosingBracket == -1)
+        {
+            return GetTextBeforeComment(commentSign, transliterated, containsComment);
+        }
+        var minIndexOfNextClosingBracket = ClosingBrackets
+            .Select(cb => transliterated.IndexOf(cb))
+            .Where(i => i != -1)
+            .Min();
+        var correspondingOpeningBracket = new Dictionary<char, char>()
+        {
+            {')', '('},
+            {'}', '{'},
+            {']', '['},
+        };
+        var openingBracket = correspondingOpeningBracket[transliterated[minIndexOfNextClosingBracket]];
+        var firstIndexOfPreviousOpeningBracket = transliterated.IndexOf(openingBracket);
+        var indexOfCommentSign = transliterated.IndexOf(commentSign);
+        var isDashBetweenMatchingBrackets = firstIndexOfPreviousOpeningBracket > -1
+            && firstIndexOfPreviousOpeningBracket < indexOfCommentSign
+            && indexOfCommentSign < minIndexOfNextClosingBracket;
+        if (isDashBetweenMatchingBrackets)
+        {
+            return new StringBuilder(GetTextBeforeComment(commentSign, transliterated, containsComment))
+                .Append(GetTextAfterFirstClosingBracket(transliterated, minIndexOfNextClosingBracket))
+                .ToString();
+        }
+        return GetTextBeforeComment(commentSign, transliterated, containsComment);
+    }
+
+    private static string GetTextAfterFirstClosingBracket(string transliterated, int indexOfClosingBracket) => transliterated[indexOfClosingBracket..];
+
+    private static string GetTextBeforeComment(string commentSign, string transliterated, bool containsComment)
+    {
         return transliterated[..(containsComment ? transliterated.IndexOf(commentSign, StringComparison.InvariantCultureIgnoreCase)
-                                    : transliterated.Length)]
-                                    .Trim();
+                                            : transliterated.Length)]
+                                            .Trim();
     }
 
     public static string RemoveFeaturingSuffix(this string text)
