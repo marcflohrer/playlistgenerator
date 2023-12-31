@@ -2,22 +2,23 @@
 
 ## Description
 
-Importify is a .NET application that imports CSV music playlists exported from Spotify using [Exportify](https://exportify.net/) and creates m3u playlists from them. The application now includes a feature for mapping music tags between Spotify and MusicBrainz or other MP3 tag databases, facilitating better synchronization of song metadata.
+Importify is a .NET application that imports CSV music playlists exported from Spotify using [Exportify](https://exportify.net/) and creates m3u playlists from them. The application now includes a feature for mapping music tags between Spotify and MusicBrainz or other MP3 tag databases, facilitating better synchronization of song metadata. It also includes a specialized CSV parsing mechanism to handle inconsistencies, specifically for Spotify songs that are currently unavailable and therefore lack some of the fields that are normally present.
 
 ## Features
 
-- Scans and organizes local MP3 files
-- Identifies and logs duplicate MP3 files
-- Deletes empty subdirectories in the music directory
-- Converts Spotify CSV playlists to m3u format
-- Supports operation resumption
-- Maps music tags between Spotify and MusicBrainz or other MP3 tag databases
+- Scans and organizes local MP3 files.
+- Identifies and logs duplicate MP3 files.
+- Deletes empty subdirectories in the music directory.
+- Converts Spotify CSV playlists to m3u format.
+- Supports operation resumption.
+- Maps music tags between Spotify and MusicBrainz or other MP3 tag databases.
+- Handles and fixes inconsistencies in CSV files, particularly for unavailable Spotify songs.
 
 ## Requirements
 
-- .NET Runtime (compatible with .NET 8.0)
-- Local music library in MP3 format
-- CSV files exported from Spotify using [Exportify](https://exportify.net/)
+- .NET Runtime (compatible with .NET 8.0).
+- Local music library in MP3 format.
+- CSV files exported from Spotify using [Exportify](https://exportify.net/).
 
 ## Installation
 
@@ -33,6 +34,7 @@ Importify is a .NET application that imports CSV music playlists exported from S
    - Set the "args" with the paths to your music directory (`-m`) and CSV directory (`-c`).
 4. Run the application using VS Code or .NET CLI.
 5. Optionally, configure tag mapping in `appsettings.json` for any discrepancies in song metadata.
+6. The application will automatically fix any broken CSV files during processing, focusing on unavailable Spotify songs.
 
 ## Configuration
 
