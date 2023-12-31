@@ -3,6 +3,7 @@ using System.Text;
 using CsvHelper;
 using CsvHelper.Configuration;
 using MusicOrganizer.Models;
+
 namespace MusicOrganizer.Services;
 
 public static class CsvToMp3InfoParser
@@ -13,7 +14,7 @@ public static class CsvToMp3InfoParser
     public static IList<Mp3Info> ToMp3InfoList(this FileInfo csvFilePlayList, IList<MusicBrainzTagMap> tagMaps)
     {
         ArgumentNullException.ThrowIfNull(csvFilePlayList);
-        FixBrokenCsv(csvFilePlayList);
+        FixBrokenCsvLines(csvFilePlayList);
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
             NewLine = Environment.NewLine
@@ -29,7 +30,7 @@ public static class CsvToMp3InfoParser
         return playlistEntries;
     }
 
-    private static void FixBrokenCsv(FileInfo csvFilePlayList)
+    private static void FixBrokenCsvLines(FileInfo csvFilePlayList)
     {
         try
         {
@@ -68,7 +69,7 @@ public static class CsvToMp3InfoParser
                 }
                 fixedLines.Add(line);
             }
-            WriteFixedLines(fixedLines, csvFilePlayList);
+            csvFilePlayList.WriteLines(fixedLines);
         }
         catch (IOException e)
         {
@@ -118,22 +119,5 @@ public static class CsvToMp3InfoParser
         columns.Add(currentColumn.ToString());
 
         return columns;
-    }
-
-    private static void WriteFixedLines(List<string> fixedLines, FileInfo csvFilePlayList)
-    {
-        try
-        {
-            using var streamWriter = new StreamWriter(csvFilePlayList.FullName, false, Encoding.UTF8);
-            foreach (var line in fixedLines)
-            {
-                streamWriter.WriteLine(line);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Writing the fixed csv file failed: {ex.Message}");
-            throw;
-        }
     }
 }

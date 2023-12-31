@@ -1,4 +1,5 @@
 ﻿using System.Security.Cryptography;
+using System.Text;
 using MusicOrganizer.Extensions;
 using MusicOrganizer.Models;
 using MusicOrganizer.Services;
@@ -38,6 +39,25 @@ public static class FileInfoExtensions
             (int)tags.Year,
             duration);
         return mp3Info;
+    }
+
+
+
+    public static void WriteLines(this FileInfo csvFilePlayList, List<string> fixedLines)
+    {
+        try
+        {
+            using var streamWriter = new StreamWriter(csvFilePlayList.FullName, false, Encoding.UTF8);
+            foreach (var line in fixedLines)
+            {
+                streamWriter.WriteLine(line);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Writing the fixed csv file failed: {ex.Message}");
+            throw;
+        }
     }
 }
 
