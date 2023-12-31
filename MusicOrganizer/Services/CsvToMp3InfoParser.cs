@@ -7,7 +7,8 @@ namespace MusicOrganizer.Services;
 
 public static class CsvToMp3InfoParser
 {
-    private const char ColumnSeparator = ',';
+    public const char ColumnSeparator = ',';
+    private const int ColumnCountOfUnvailableSpotifySong = 11;
 
     public static IList<Mp3Info> ToMp3InfoList(this FileInfo csvFilePlayList, IList<MusicBrainzTagMap> tagMaps)
     {
@@ -30,7 +31,6 @@ public static class CsvToMp3InfoParser
 
     private static void FixBrokenCsv(FileInfo csvFilePlayList)
     {
-        using var reader = new StreamReader(path: csvFilePlayList.FullName);
         try
         {
             // Open the text file using a stream reader.
@@ -54,9 +54,8 @@ public static class CsvToMp3InfoParser
                 {
                     var columns = GetColumns(line, ColumnSeparator);
                     var currentColumnCount = columns.Count;
-                    if (IsUnavailableSpotifySong(headerColumnCount, currentColumnCount))
+                    if (IsUnavailableSpotifySong(currentColumnCount))
                     {
-                        columns = GetColumns(line, ColumnSeparator);
                         line = UnavailableSpotifySong
                             .FromCsvColumns(columns)
                             .ToPlaylistEntry()
@@ -64,7 +63,7 @@ public static class CsvToMp3InfoParser
                     }
                     else if (currentColumnCount != headerColumnCount)
                     {
-                        throw new InvalidDataException($"CSV format is not consistent: Line {lineCount} in {csvFilePlayList.Name} has {currentColumnCount} Columns. Expected is {headerColumnCount}");
+                        throw new InvalidDataException($"CSV format is not consistent: Line {lineCount} in {csvFilePlayList.Name} has {currentColumnCount} columns. Expected is {headerColumnCount} columns.");
                     }
                 }
                 fixedLines.Add(line);
@@ -73,67 +72,68 @@ public static class CsvToMp3InfoParser
         }
         catch (IOException e)
         {
-            Console.WriteLine("The file could not be read:");
-            Console.WriteLine(e.Message);
+            Console.WriteLine($"The file could not be read: {e.Message}");
+            throw;
+        }
+        catch (CsvHelperException csvHelperException)
+        {
+            Console.WriteLine($"Parsing the file failed. {csvHelperException.Message}");
+            throw;
         }
     }
 
-    private static bool IsUnavailableSpotifySong(int headerColumnCount, int currentColumnCount)
-    {
-        return currentColumnCount == headerColumnCount - 12;
-    }
+    private static bool IsUnavailableSpotifySong(int currentColumnCount) => currentColumnCount == ColumnCountOfUnvailableSpotifySong;
 
-    private static List<string> GetColumns(string line, char columnSeparator)
+    public static List<string> GetColumns(string line, char columnSeparator)
     {
         var columns = new List<string>();
-        var currentColumnCount = 0;
-        var inBetweenBrackets = false;
-        char? currentChar = null;
         var currentColumn = new StringBuilder();
-        foreach (var ch in line)
+        var inQuotes = false;
+
+        foreach (var currentChar in line)
         {
-            currentChar = ch;
-            if (currentChar != columnSeparator)
+            if (currentChar == '"')
             {
+                // Toggle the state of whether we are inside quotation marks
+                inQuotes = !inQuotes;
+                // Add quotation marks to the current column
+                currentColumn.Append(currentChar);
+                continue;
+            }
+
+            if (currentChar == columnSeparator && !inQuotes)
+            {
+                // Column separator outside quotation marks marks the end of a column
+                columns.Add(currentColumn.ToString());
+                currentColumn.Clear();
+            }
+            else
+            {
+                // Add the current character to the current column
                 currentColumn.Append(currentChar);
             }
-            // Ignore column separators in between quotes
-            if (inBetweenBrackets == false && currentChar == '"')
-            {
-                inBetweenBrackets = true;
-                continue;
-            }
-            if (inBetweenBrackets == true)
-            {
-                if (currentChar == '"')
-                {
-                    inBetweenBrackets = false;
-                }
-                continue;
-            }
-            if (currentChar == columnSeparator)
-            {
-                columns.Add(currentColumn.ToString());
-                currentColumn = new StringBuilder();
-                ++currentColumnCount;
-            }
         }
-        if (currentChar != columnSeparator)
-        {
-            columns.Add(currentColumn.ToString());
-            currentColumn = new StringBuilder();
-            ++currentColumnCount;
-        }
+
+        // Add the last column
+        columns.Add(currentColumn.ToString());
 
         return columns;
     }
 
     private static void WriteFixedLines(List<string> fixedLines, FileInfo csvFilePlayList)
     {
-        using var streamWriter = new StreamWriter(csvFilePlayList.FullName, false, Encoding.UTF8);
-        foreach (var line in fixedLines)
+        try
         {
-            streamWriter.WriteLine(line);
+            using var streamWriter = new StreamWriter(csvFilePlayList.FullName, false, Encoding.UTF8);
+            foreach (var line in fixedLines)
+            {
+                streamWriter.WriteLine(line);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Writing the fixed csv file failed: {ex.Message}");
+            throw;
         }
     }
 }
