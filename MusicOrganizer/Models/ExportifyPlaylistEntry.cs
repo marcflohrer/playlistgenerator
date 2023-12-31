@@ -3,7 +3,7 @@ using MusicOrganizer.Extensions;
 
 namespace MusicOrganizer.Models;
 
-public class ExportifyPlaylist
+public class ExportifyPlaylistEntry
 {
     [Index(0)]
     [Name("Spotify ID")]
@@ -130,5 +130,10 @@ public class ExportifyPlaylist
     private int GetDurationInSeconds()
     {
         return int.Parse(DurationMs) / 1000;
+    }
+
+    public string ToCsvString()
+    {
+        return $"{SpotifyId},{ArtistIds},{TrackName},{AlbumName},{ArtistNames},{ReleaseDate},{DurationMs},{Popularity},{AddedBy},{AddedAt},{Genres},{Danceability},{Energy},{Key},{Loudness},{Mode},{Speechiness},{Acousticness},{Instrumentalness},{Liveness},{Valence},{Tempo},{TimeSignature}";
     }
 }

@@ -19,14 +19,12 @@ public static class M3uPlaylistCreator
         {
             var songsOfArtist = GetSongsOfArtistInLocalLibrary(mainDirScanResult.SongsOfArtists, playlistEntry.NormalizedMainInterpret(tagMaps));
             var matchingSongInLocalLibrary = GetSongsForTitleForGivenArtist(songsOfArtist, playlistEntry.NormalizedTitle(tagMaps));
-            if (matchingSongInLocalLibrary != null)
-            {
-                mp3InfoPlaylist.Add(new FileTags(string.Empty, matchingSongInLocalLibrary!));
-            }
-            else
+            if (matchingSongInLocalLibrary == null)
             {
                 Logger.WriteLine(logFile, $"No match found '{playlistEntry.Title}' by '{string.Join(',', playlistEntry.Interpret)}' from '{playlistEntry.Year}'");
+                matchingSongInLocalLibrary = playlistEntry;
             }
+            mp3InfoPlaylist.Add(new FileTags(string.Empty, matchingSongInLocalLibrary!));
         }
 
         NormalizeFileTags(mp3InfoPlaylist, tagMaps)
