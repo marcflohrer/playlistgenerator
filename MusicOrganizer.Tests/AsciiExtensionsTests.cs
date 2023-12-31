@@ -61,6 +61,9 @@ public class AsciiExtensionsTests
     [InlineData("I Follow Rivers (Live @ Giel! - VARA/3FM)", true, "ifollowrivers")]
     [InlineData("I Follow Rivers [Live @ Giel! - VARA/3FM]", true, "ifollowrivers")]
     [InlineData("I Follow Rivers {Live @ Giel! - VARA/3FM}", true, "ifollowrivers")]
+    [InlineData("The Gossip", true, "gossip")]
+    [InlineData("I Gotta Feelin", true, "igotafeelin")]
+    [InlineData("I Gotta Feeling", true, "igotafeelin")]
     public static void NormalizeSongTitle_WhenBrackets_ThenOnlyTextBeforeBracketsIsReturned(string input, bool isInterpret, string expected)
     {
         var normalizeMode = isInterpret ? NormalizeMode.StrictInterpret : NormalizeMode.Strict;
@@ -68,6 +71,18 @@ public class AsciiExtensionsTests
             new() {
                 SpotifyTag = "Wasted Little DJ's",
                 MusicBrainzTag = "Wasted Little DJs"
+            },
+            new(){
+                SpotifyTag = "The Gossip",
+                MusicBrainzTag = "Gossip"
+            },
+            new(){
+                SpotifyTag = "I Gotta Feelin",
+                MusicBrainzTag = "I Got a Feelin"
+            },
+            new(){
+                SpotifyTag = "I Gotta Feeling",
+                MusicBrainzTag = "I Got a Feelin"
             }
         }, normalizeMode);
 

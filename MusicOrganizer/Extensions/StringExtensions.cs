@@ -65,15 +65,19 @@ public static partial class StringExtensions
 
     public static string ReplaceRockNRoll(this string text) => text.Replace("Rock \u0026 Roll", "rockroll", StringComparison.InvariantCultureIgnoreCase);
 
-    public static string ReplaceSpotifyTagErrors(this string text, IList<MusicBrainzTagMap> tagMaps)
+    public static string ReplaceSpotifyTagErrors(this string text, List<MusicBrainzTagMap> tagMaps)
     {
         var tagErrorsFixed = text;
-        foreach (var tagFix in from tagFix in tagMaps
-                               where tagErrorsFixed.Contains(tagFix.SpotifyTag, StringComparison.InvariantCultureIgnoreCase)
-                                     && !tagErrorsFixed.Contains(tagFix.MusicBrainzTag, StringComparison.InvariantCultureIgnoreCase)
-                               select tagFix)
+        // Replace longer tags first in case one tag is a substring of another.
+        tagMaps
+            .Sort((MusicBrainzTagMap tm1, MusicBrainzTagMap tm2) => tm2.SpotifyTag.Length.CompareTo(tm1.SpotifyTag.Length));
+        foreach (var tagFix in tagMaps)
         {
-            tagErrorsFixed = tagErrorsFixed.Replace(tagFix.SpotifyTag, tagFix.MusicBrainzTag, StringComparison.InvariantCultureIgnoreCase);
+            if (tagErrorsFixed.Contains(tagFix.SpotifyTag, StringComparison.InvariantCultureIgnoreCase)
+                                     && !tagErrorsFixed.Equals(tagFix.MusicBrainzTag, StringComparison.InvariantCultureIgnoreCase))
+            {
+                tagErrorsFixed = tagErrorsFixed.Replace(tagFix.SpotifyTag, tagFix.MusicBrainzTag, StringComparison.InvariantCultureIgnoreCase);
+            }
         }
 
         return tagErrorsFixed;
