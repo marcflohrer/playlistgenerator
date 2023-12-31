@@ -19,7 +19,7 @@ public static class Mp3TagService
             throw new InvalidOperationException("GetMp3Info: Files must not be null.");
         }
         var fileTags = new List<FileTags>();
-        foreach (FileInfo f in files)
+        foreach (var f in files)
         {
             var mp3Info = f.GetMp3Info(tagMaps, output);
             if (mp3Info != null)
