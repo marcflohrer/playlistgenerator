@@ -7,6 +7,14 @@ namespace MusicOrganizer.Extensions;
 public static class FindDuplicatesExtensions
 {
 
+    /// <summary>
+    /// Resume Or Scan Mp3 Tags.
+    /// </summary>
+    /// <param name="mp3Files">Mp3 Files.</param>
+    /// <param name="resumeTags">File that contains the tags of the most recent scan.</param>
+    /// <param name="tagMaps">Maps tags in the playlist to the tags of the local music library.</param>
+    /// <param name="logFile">Log file.</param>
+    /// <returns></returns>
     public static List<FileTags>? ResumeOrScanMp3Tags(this List<FileInfo>? mp3Files, FileInfo resumeTags, IList<MusicBrainzTagMap> tagMaps, FileInfo logFile)
     {
         List<FileTags>? fileTags;
@@ -23,34 +31,38 @@ public static class FindDuplicatesExtensions
         return fileTags;
     }
 
+    /// <summary>
+    /// Create deletion script for duplicate songs.
+    /// </summary>
+    /// <param name="duplicatesongs">Duplicate songs.</param>
+    /// <param name="logFile">Log File.</param>
+    /// <param name="deletionScript">Deletion Script.</param>
     public static void CreateDeletionScript(this Dictionary<string, SongLocations> duplicatesongs, FileInfo? logFile, FileInfo? deletionScript)
     {
         foreach (var song in duplicatesongs)
         {
+            var duplicates = song.Value.Mp3Infos;
+            if (duplicates.Count <= 1)
             {
-                var duplicates = song.Value.Mp3Infos;
-                if (duplicates.Count <= 1)
-                {
-                    continue;
-                }
-                var orderedDuplicates = duplicates.OrderByDescending(d => d.SizeInBytes);
+                continue;
+            }
+            var orderedDuplicates = duplicates.OrderByDescending(d => d.SizeInBytes);
 
-                orderedDuplicates = AddDuplicateToScriptWhenHasNoAmazonIdAndOthersHaveAmazonId(logFile, deletionScript, orderedDuplicates);
+            orderedDuplicates = AddDuplicateToScriptWhenHasNoAmazonIdAndOthersHaveAmazonId(logFile, deletionScript, orderedDuplicates);
 
-                orderedDuplicates = AddDuplicateToScriptWhenAlbumArtistIsNotEqualToArtistInOneOfTheDuplicates(logFile, deletionScript, orderedDuplicates);
+            orderedDuplicates = AddDuplicateToScriptWhenAlbumArtistIsNotEqualToArtistInOneOfTheDuplicates(logFile, deletionScript, orderedDuplicates);
 
-                foreach (var d in orderedDuplicates.Where(d => d.SizeInBytes < orderedDuplicates.First().SizeInBytes))
-                {
-                    d.PrintMp3Info(logFile, "file size");
-                    PrintDeletionScript(deletionScript, d.FilePath);
-                }
+            foreach (var d in orderedDuplicates.Where(d => d.SizeInBytes < orderedDuplicates.First().SizeInBytes))
+            {
+                d.PrintMp3Info(logFile, "file size");
+                PrintDeletionScript(deletionScript, d.FilePath);
+            }
 
-                var leftOvers = orderedDuplicates.Where(d => d.SizeInBytes == orderedDuplicates.First().SizeInBytes);
-                foreach (var d in leftOvers.Skip(1))
-                {
-                    d.PrintMp3Info(logFile, "no reason");
-                    PrintDeletionScript(deletionScript, d.FilePath);
-                }
+            var leftOvers = orderedDuplicates.Where(d => d.SizeInBytes == orderedDuplicates.First().SizeInBytes);
+            foreach (var d in leftOvers.Skip(1))
+            {
+                d.PrintMp3Info(logFile, "no reason");
+                PrintDeletionScript(deletionScript, d.FilePath);
             }
         }
     }
@@ -88,49 +100,50 @@ public static class FindDuplicatesExtensions
     {
         try
         {
-            var ordDuplicates = orderedDuplicates;
-            if (orderedDuplicates.ToList().IsAmazonIdAnDiscrimator())
+            if (orderedDuplicates.Any(mp3 => !string.IsNullOrEmpty(mp3.AmazonId)))
             {
-                var noAmazonId = orderedDuplicates.Where(mp3 => string.IsNullOrEmpty(mp3.AmazonId)).OrderByDescending(d => d.SizeInBytes);
-                foreach (var d in noAmazonId)
-                {
-                    d.PrintMp3Info(output, "No AmazonId");
-                    PrintDeletionScript(deletionScript, d.FilePath);
-                }
-                orderedDuplicates = orderedDuplicates.Where(mp3 => !string.IsNullOrEmpty(mp3.AmazonId)).OrderByDescending(d => d.SizeInBytes);
+                var noAmazonId = orderedDuplicates.Where(mp3 => string.IsNullOrEmpty(mp3.AmazonId));
+                ProcessDuplicates(noAmazonId, output, deletionScript, "No AmazonId");
+
+                orderedDuplicates = orderedDuplicates.Where(mp3 => !string.IsNullOrEmpty(mp3.AmazonId)).OrderByDescending(o => o.SizeInBytes);
             }
-            return orderedDuplicates;
+            return orderedDuplicates.OrderByDescending(d => d.SizeInBytes);
         }
         catch (Exception ex)
         {
             Logger.WriteLine(output, ex.Message + "\n" + ex.StackTrace);
+            return Enumerable.Empty<Mp3Info>().OrderByDescending(d => d.SizeInBytes);
         }
-        return new List<Mp3Info>().OrderByDescending(d => d.SizeInBytes);
+    }
+
+    private static void ProcessDuplicates(IEnumerable<Mp3Info> duplicates, FileInfo? output, FileInfo? deletionScript, string reason)
+    {
+        foreach (var d in duplicates)
+        {
+            d.PrintMp3Info(output, reason);
+            PrintDeletionScript(deletionScript, d.FilePath);
+        }
     }
 
     private static IOrderedEnumerable<Mp3Info> AddDuplicateToScriptWhenAlbumArtistIsNotEqualToArtistInOneOfTheDuplicates(FileInfo? output, FileInfo? deletionScript, IOrderedEnumerable<Mp3Info> orderedDuplicates)
     {
         try
         {
-            var ordDuplicates = orderedDuplicates;
             var isAlbumArtistDiscriminator = orderedDuplicates.ToList().IsAlbumArtistAnDiscrimator();
             if (isAlbumArtistDiscriminator.IsDiscriminator)
             {
-                var albumArtistMismatch = orderedDuplicates.Where(mp3 => mp3.AlbumArtists.ArrayToString() != isAlbumArtistDiscriminator.Interpret).OrderByDescending(d => d.SizeInBytes);
-                foreach (var d in albumArtistMismatch.Where(d => d.AlbumArtists.ArrayToString() != ordDuplicates.First().Interpret.ArrayToString()))
-                {
-                    d.PrintMp3Info(output, "Album Artist <> Interpret");
-                    PrintDeletionScript(deletionScript, d.FilePath);
-                }
-                orderedDuplicates = orderedDuplicates.Where(mp3 => mp3.AlbumArtists.ArrayToString() == isAlbumArtistDiscriminator.Interpret).OrderByDescending(d => d.SizeInBytes);
+                var albumArtistMismatch = orderedDuplicates.Where(mp3 => mp3.AlbumArtists.ArrayToString() != isAlbumArtistDiscriminator.Interpret);
+                ProcessDuplicates(albumArtistMismatch, output, deletionScript, "Album Artist <> Interpret");
+
+                orderedDuplicates = orderedDuplicates.Where(mp3 => mp3.AlbumArtists.ArrayToString() == isAlbumArtistDiscriminator.Interpret).OrderByDescending(o => o.SizeInBytes);
             }
-            return orderedDuplicates;
+            return orderedDuplicates.OrderByDescending(d => d.SizeInBytes);
         }
         catch (Exception ex)
         {
             Logger.WriteLine(output, ex.Message + "\n" + ex.StackTrace);
+            return Enumerable.Empty<Mp3Info>().OrderByDescending(d => d.SizeInBytes);
         }
-        return new List<Mp3Info>().OrderByDescending(d => d.SizeInBytes);
     }
 
     private static void PrintDeletionScript(FileInfo? deletionScript, string? filePath)
@@ -139,4 +152,3 @@ public static class FindDuplicatesExtensions
         Logger.WriteLine(deletionScript, $"rm -f {escapedFilePath}");
     }
 }
-
