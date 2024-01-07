@@ -109,7 +109,7 @@ public class ExportifyPlaylistEntry
         {
             releaseYear = DateTime.Parse(ReleaseDate).Year;
         }
-        var fixedArtistNames = StringExtensions.ReplaceSpotifyTagErrors(ArtistNames, [.. tagMaps]);
+        var fixedArtistNames = StringExtensions.ReplaceSpotifyTagMismatches(ArtistNames, [.. tagMaps]);
         var artists = GetArtistList(fixedArtistNames);
         return new Mp3Info(
             string.Empty,

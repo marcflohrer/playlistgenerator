@@ -158,7 +158,7 @@ public static class Mp3TagService
             return string.Empty;
         }
         var normalizedTag = title
-            .ReplaceSpotifyTagErrors([.. musicBrainsTagMap])
+            .ReplaceSpotifyTagMismatches([.. musicBrainsTagMap])
             .ToLowerInvariant()
             .RemoveTitleAppendix(normalizeMode);
 

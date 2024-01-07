@@ -2,7 +2,6 @@
 using System.Text.RegularExpressions;
 using AnyAscii;
 using MusicOrganizer.Models;
-using PowerArgs;
 
 namespace MusicOrganizer.Extensions;
 
@@ -41,10 +40,15 @@ public static partial class StringExtensions
         " - "
     };
 
+    private static string s_punctuation = ".?!,:;––—´‘/…*& #~\\@^|";
+
     private static IList<char> s_closingBrackets = new List<char> { ')', '}', ']' };
 
-    public static IList<char> ClosingBrackets { get => s_closingBrackets; set => s_closingBrackets = value; }
-
+    /// <summary>
+    /// Some characters have to be escaped so that the file path is recognized in a bash skript.
+    /// </summary>
+    /// <param name="filePath">Path of a file.</param>
+    /// <returns>Path of the file where special characters are escaped.</returns>
     public static string? EscapeSpecialChars(this string? filePath)
     {
         if (string.IsNullOrEmpty(filePath))
@@ -60,6 +64,12 @@ public static partial class StringExtensions
         return sb.ToString();
     }
 
+    /// <summary>
+    /// In order to find duplicate songs the punctuation has to be removed or normalized as it varies from album to album.
+    /// One song is normally released on a lot of different albums or compilations but the song is still the same.
+    /// </summary>
+    /// <param name="text">Mp3 tag value.</param>
+    /// <returns>Mp3 tag value that is normalized with respect to punctuation and the 'and' word.</returns>
     public static string RemovePunctuation(this string text)
     {
         if (string.IsNullOrEmpty(text))
@@ -68,10 +78,14 @@ public static partial class StringExtensions
         }
 
         var result = text.Replace(" and ", "&");
-        var punctuation = ".?!,:;––—´‘/…*& #~\\@^|";
-        return new string(result.Where(c => !punctuation.Contains(c)).ToArray());
+        return new string(result.Where(c => !s_punctuation.Contains(c)).ToArray());
     }
 
+    /// <summary>
+    /// In order to find duplicate songs the text in brackets has to be removed as it varies from album to album.
+    /// </summary>
+    /// <param name="text">Tag value.</param>
+    /// <returns>Tag value without the brackets and text between the brackets.</returns>
     public static string RemoveContentInBrackets(this string text)
     {
         if (string.IsNullOrEmpty(text))
@@ -79,10 +93,17 @@ public static partial class StringExtensions
             return text;
         }
 
-        return Regex.Replace(text, @"\{.*?\}|\[.*?\]|\(.*?\)", "");
+        return MatchingBracketsRegex().Replace(text, "");
     }
 
-    public static string ReplaceSpotifyTagErrors(this string text, List<MusicBrainzTagMap> tagMaps)
+    /// <summary>
+    /// Spotify mp3 tags do not always match the tags in the local library. 
+    /// This function replaces the spotify tag with the version in the local library.
+    /// </summary>
+    /// <param name="text">Tag value.</param>
+    /// <param name="tagMaps">Maps the spotify tag with the local tag.</param>
+    /// <returns>A tag that matches with the tag in the local music library.</returns>
+    public static string ReplaceSpotifyTagMismatches(this string text, List<MusicBrainzTagMap> tagMaps)
     {
         var tagErrorsFixed = text;
         // Replace longer tags first in case one tag is a substring of another.
@@ -104,27 +125,38 @@ public static partial class StringExtensions
         tagMaps.Sort((MusicBrainzTagMap tm1, MusicBrainzTagMap tm2) => tm2.SpotifyTag.Length.CompareTo(tm1.SpotifyTag.Length));
     }
 
-    public static string RemoveTitleAppendix(this string text, NormalizeMode normalizeMode)
-    {
-        return RemoveAppendix(text, s_titleAppendixStarters, normalizeMode);
-    }
+    /// <summary>
+    /// In order to find duplicate songs text following a certain trigger has to be removed. These appendices vary from album to album.
+    /// The song remains the same on each album or compilation.
+    /// </summary>
+    /// <param name="title">Title.</param>
+    /// <returns>Title without the appendix.</returns>
+    public static string RemoveTitleAppendix(this string title, NormalizeMode normalizeMode) 
+        => RemoveAppendix(title, s_titleAppendixStarters, normalizeMode);
 
-    public static string RemoveArtistAppendix(this string text, NormalizeMode normalizeMode)
-    {
-        return RemoveAppendix(text, s_artistAppendixStarters, normalizeMode);
-    }
+    /// <summary>
+    /// In order to find duplicate songs text following a certain trigger has to be removed. These appendices vary from album to album.
+    /// The song remains the same on each album or compilation.
+    /// </summary>
+    /// <param name="artist">Artist.</param>
+    /// <returns>Artist without the appendix.</returns>
+    public static string RemoveArtistAppendix(this string artist, NormalizeMode normalizeMode) 
+        => RemoveAppendix(artist, s_artistAppendixStarters, normalizeMode);
 
     private static string RemoveAppendix(string text, IList<string> endOfContentIndicators, NormalizeMode normalizeMode)
     {
         var result = text;
         foreach (var endOfTitleIndicator in endOfContentIndicators)
         {
-            result = RemoveAppendix(result, endOfTitleIndicator, normalizeMode);
+            if (result.Contains(endOfTitleIndicator, StringComparison.OrdinalIgnoreCase))
+            {
+                result = RemoveAppendix(result, endOfTitleIndicator, normalizeMode);
+            }
         }
         return result;
     }
 
-    public static string RemoveAppendix(this string text, string appendixStarter, NormalizeMode normalizeMode)
+    private static string RemoveAppendix(this string text, string appendixStarter, NormalizeMode normalizeMode)
     {
         if (normalizeMode == NormalizeMode.Loose || string.IsNullOrEmpty(text))
         {
@@ -139,7 +171,7 @@ public static partial class StringExtensions
         }
 
         var maxIndexOfNextClosingBracket = -1;
-        foreach (var cb in ClosingBrackets)
+        foreach (var cb in s_closingBrackets)
         {
             var index = transliterated.IndexOf(cb);
             if (index > maxIndexOfNextClosingBracket)
@@ -153,7 +185,7 @@ public static partial class StringExtensions
             return transliterated[..indexOfAppendixStarter].Trim();
         }
 
-        var minIndexOfNextClosingBracket = ClosingBrackets
+        var minIndexOfNextClosingBracket = s_closingBrackets
             .Select(cb => transliterated.IndexOf(cb))
             .Where(i => i != -1)
             .Min();
@@ -182,9 +214,17 @@ public static partial class StringExtensions
         return transliterated[..indexOfAppendixStarter].Trim();
     }
 
-    public static string RemoveFeaturingSuffix(this string text)
-        => text.Contains("feat.")
-            ? text[..text.IndexOf("feat.")].Trim()
-            : text;
-}
+    /// <summary>
+    /// In order to find duplicate songs text following a the trigger word 'feat.' has to be removed. This appendix vary from album to album.
+    /// The song remains the same on each album or compilation.
+    /// </summary>
+    /// <param name="title">Title.</param>
+    /// <returns>Title without the featuring appendix.</returns>
+    public static string RemoveFeaturingSuffix(this string title)
+        => title.Contains("feat.")
+            ? title[..title.IndexOf("feat.")].Trim()
+            : title;
 
+    [GeneratedRegex(@"\{.*?\}|\[.*?\]|\(.*?\)")]
+    private static partial Regex MatchingBracketsRegex();
+}

@@ -106,8 +106,8 @@ public static class FindDuplicatesExtensions
 
     private static void PrintDeletionScript(FileInfo? deletionScript, string? filePath)
     {
-        filePath = filePath.EscapeSpecialChars();
-        Logger.WriteLine(deletionScript, $"rm -f {filePath}");
+        var escapedFilePath = filePath.EscapeSpecialChars();
+        Logger.WriteLine(deletionScript, $"rm -f {escapedFilePath}");
     }
 }
 

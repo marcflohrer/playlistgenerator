@@ -41,8 +41,6 @@ public static class FileInfoExtensions
         return mp3Info;
     }
 
-
-
     public static void WriteLines(this FileInfo csvFilePlayList, List<string> fixedLines)
     {
         try
@@ -55,7 +53,7 @@ public static class FileInfoExtensions
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Writing the fixed csv file failed: {ex.Message}");
+            Console.WriteLine($"WriteLines: Writing the fixed csv file failed: {ex.Message}");
             throw;
         }
     }
