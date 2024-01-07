@@ -28,7 +28,7 @@ public static partial class StringExtensions
         {">", @"\>"}
     };
 
-    private static readonly IList<string> s_beginOfArtistAppendixIndicators = new List<string>()
+    private static readonly IList<string> s_artistAppendixStarters = new List<string>()
     {
         " - ",
         " & ",
@@ -36,7 +36,7 @@ public static partial class StringExtensions
         " Vs. "
     };
 
-    private static readonly IList<string> s_beginOfTitleAppendixIndicators = new List<string>()
+    private static readonly IList<string> s_titleAppendixStarters = new List<string>()
     {
         " - "
     };
@@ -111,12 +111,12 @@ public static partial class StringExtensions
 
     public static string RemoveTitleAppendix(this string text, NormalizeMode normalizeMode)
     {
-        return RemoveAppendix(text, s_beginOfTitleAppendixIndicators, normalizeMode);
+        return RemoveAppendix(text, s_titleAppendixStarters, normalizeMode);
     }
 
     public static string RemoveArtistAppendix(this string text, NormalizeMode normalizeMode)
     {
-        return RemoveAppendix(text, s_beginOfArtistAppendixIndicators, normalizeMode);
+        return RemoveAppendix(text, s_artistAppendixStarters, normalizeMode);
     }
 
     private static string RemoveAppendix(string text, IList<string> endOfContentIndicators, NormalizeMode normalizeMode)
@@ -124,36 +124,46 @@ public static partial class StringExtensions
         var result = text;
         foreach (var endOfTitleIndicator in endOfContentIndicators)
         {
-            result = RemoveContentAfter(result, endOfTitleIndicator, normalizeMode);
+            result = RemoveAppendix(result, endOfTitleIndicator, normalizeMode);
         }
         return result;
     }
 
-    public static string RemoveContentAfter(this string text, string commentSign, NormalizeMode normalizeMode)
+    public static string RemoveAppendix(this string text, string appendixStarter, NormalizeMode normalizeMode)
     {
-        if (normalizeMode == NormalizeMode.Loose)
+        if (normalizeMode == NormalizeMode.Loose || string.IsNullOrEmpty(text))
         {
             return text;
         }
+
         var transliterated = text.Transliterate();
-        var containsComment = transliterated.Contains(commentSign, StringComparison.InvariantCultureIgnoreCase);
+        var indexOfAppendixStarter = transliterated.IndexOf(appendixStarter, StringComparison.OrdinalIgnoreCase);
+        if (indexOfAppendixStarter < 0)
+        {
+            return transliterated;
+        }
+
         var maxIndexOfNextClosingBracket = -1;
         foreach (var cb in ClosingBrackets)
         {
-            if (transliterated.IndexOf(cb) > maxIndexOfNextClosingBracket)
+            var index = transliterated.IndexOf(cb);
+            if (index > maxIndexOfNextClosingBracket)
             {
-                maxIndexOfNextClosingBracket = transliterated.IndexOf(cb);
+                maxIndexOfNextClosingBracket = index;
             }
         }
+
         if (maxIndexOfNextClosingBracket == -1)
         {
-            return GetTextBeforeComment(commentSign, transliterated, containsComment);
+            return transliterated[..indexOfAppendixStarter].Trim();
         }
+
         var minIndexOfNextClosingBracket = ClosingBrackets
             .Select(cb => transliterated.IndexOf(cb))
             .Where(i => i != -1)
             .Min();
-        var correspondingOpeningBracket = new Dictionary<char, char>()
+
+        var correspondingOpeningBracket = new Dictionary<char, char>
         {
             {')', '('},
             {'}', '{'},
@@ -161,27 +171,20 @@ public static partial class StringExtensions
         };
 
         var openingBracket = correspondingOpeningBracket[transliterated[minIndexOfNextClosingBracket]];
-        var firstIndexOfPreviousOpeningBracket = transliterated.IndexOf(openingBracket);
-        var indexOfCommentSign = transliterated.IndexOf(commentSign);
-        var isDashBetweenMatchingBrackets = firstIndexOfPreviousOpeningBracket > -1
-            && firstIndexOfPreviousOpeningBracket < indexOfCommentSign
-            && indexOfCommentSign < minIndexOfNextClosingBracket;
-        if (isDashBetweenMatchingBrackets)
+        var firstIndexOfPreviousOpeningBracket = transliterated.LastIndexOf(openingBracket, indexOfAppendixStarter);
+
+        var isAppendixStarterBetweenMatchingBrackets = firstIndexOfPreviousOpeningBracket > -1
+                                            && firstIndexOfPreviousOpeningBracket < indexOfAppendixStarter
+                                            && indexOfAppendixStarter < minIndexOfNextClosingBracket;
+
+        if (isAppendixStarterBetweenMatchingBrackets)
         {
-            return new StringBuilder(GetTextBeforeComment(commentSign, transliterated, containsComment))
-                .Append(GetTextAfterFirstClosingBracket(transliterated, minIndexOfNextClosingBracket))
+            return new StringBuilder(transliterated[..indexOfAppendixStarter].Trim())
+                .Append(transliterated[minIndexOfNextClosingBracket..])
                 .ToString();
         }
-        return GetTextBeforeComment(commentSign, transliterated, containsComment);
-    }
 
-    private static string GetTextAfterFirstClosingBracket(string transliterated, int indexOfClosingBracket) => transliterated[indexOfClosingBracket..];
-
-    private static string GetTextBeforeComment(string commentSign, string transliterated, bool containsComment)
-    {
-        return transliterated[..(containsComment ? transliterated.IndexOf(commentSign, StringComparison.InvariantCultureIgnoreCase)
-                                            : transliterated.Length)]
-                                            .Trim();
+        return transliterated[..indexOfAppendixStarter].Trim();
     }
 
     public static string RemoveFeaturingSuffix(this string text)
