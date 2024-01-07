@@ -69,20 +69,15 @@ public static class FindDuplicatesExtensions
             var distinctAmazonIds = duplicateSong.Value.Mp3Infos
                 .Select(ds => ds.AmazonId)
                 .Distinct();
-            var songLocations = new List<Mp3Info>();
-            foreach (var amazonId in distinctAmazonIds)
-            {
-                var songsByAmazonId = duplicateSong.Value.Mp3Infos
-                    .Where(mp3 => mp3.AmazonId == amazonId);
-                if (songsByAmazonId.Count() > 1)
-                {
-                    songLocations.AddRange(songsByAmazonId.ToList());
-                }
-            }
-            var normalizedTitle = duplicateSong.Key;
+            var songLocations = duplicateSong.Value.Mp3Infos
+                .GroupBy(mp3 => mp3.AmazonId)
+                .Where(group => group.Count() > 1)
+                .SelectMany(group => group)
+                .ToList();
+
             if (songLocations.Count > 1)
             {
-                duplicateSongsCleaned.Add(normalizedTitle, new SongLocations(duplicateSong.Value.NormalizedTitle, songLocations));
+                duplicateSongsCleaned.Add(duplicateSong.Key, new SongLocations(duplicateSong.Value.NormalizedTitle, songLocations));
             }
         }
 
