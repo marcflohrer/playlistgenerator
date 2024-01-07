@@ -60,13 +60,19 @@ public static partial class StringExtensions
 
     public static string RemovePunctuation(this string text)
     {
+        if (string.IsNullOrEmpty(text))
+        {
+            return text;
+        }
+
         var result = text.Replace(" and ", "&");
         var punctuation = ".?!,:;––—´‘/…*& #~\\@^|";
-        foreach (var p in punctuation.ToList())
+        var sb = new StringBuilder(result);
+        foreach (var p in punctuation)
         {
-            result = result.Replace(p.ToString(), string.Empty);
+            sb.Replace(p.ToString(), string.Empty);
         }
-        return result;
+        return sb.ToString();
     }
 
     public static string RemoveContentInBrackets(this string text)
