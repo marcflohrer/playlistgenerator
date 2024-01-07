@@ -83,7 +83,7 @@ public static class Mp3TagService
     {
         foreach (var csvFile in appOptions.CsvPlaylistFiles)
         {
-            Logger.WriteLine(appOptions.LogFile, $"--------------{Environment.NewLine}PlayList {csvFile.Name}{Environment.NewLine}--------------");
+            Logger.WriteLine(appOptions.LogFile, $"--------------{Environment.NewLine}PlayList {csvFile.Name}{Environment.NewLine}");
             var spotifyPlaylist = CsvToMp3InfoParser.ToMp3InfoList(csvFile, tagMaps);
             spotifyPlaylist.ToM3uPlaylist(
                 tagMaps,
@@ -138,6 +138,7 @@ public static class Mp3TagService
             kvp.Value.Mp3Infos.ForEach(m => m.PrintMp3Info(logFile, "<not decided>"));
             duplicateMp3Files.Add(kvp.Key, kvp.Value);
         }
+        duplicateMp3Files = (Dictionary<string, SongLocations>)FindDuplicatesExtensions.DuplicatesWithDifferentAmazonIdsAreNotDuplicates(duplicateMp3Files);
         duplicateMp3Files?.LogDuplicates(logFile);
         if (duplicateMp3Files != null && duplicateMp3Files.Count != 0)
         {

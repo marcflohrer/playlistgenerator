@@ -35,9 +35,9 @@ public static class FindDuplicatesExtensions
                 }
                 var orderedDuplicates = duplicates.OrderByDescending(d => d.SizeInBytes);
 
-                orderedDuplicates = RemoveWhereAmazonIdIsNotAvailableInOneOfTheDuplicates(logFile, deletionScript, orderedDuplicates);
+                orderedDuplicates = AddDuplicateToScriptWhenHasNoAmazonIdAndOthersHaveAmazonId(logFile, deletionScript, orderedDuplicates);
 
-                orderedDuplicates = RemoveWhereAlbumArtistIsNotEqualToArtistInOneOfTheDuplicates(logFile, deletionScript, orderedDuplicates);
+                orderedDuplicates = AddDuplicateToScriptWhenAlbumArtistIsNotEqualToArtistInOneOfTheDuplicates(logFile, deletionScript, orderedDuplicates);
 
                 foreach (var d in orderedDuplicates.Where(d => d.SizeInBytes < orderedDuplicates.First().SizeInBytes))
                 {
@@ -55,7 +55,41 @@ public static class FindDuplicatesExtensions
         }
     }
 
-    private static IOrderedEnumerable<Mp3Info> RemoveWhereAmazonIdIsNotAvailableInOneOfTheDuplicates(FileInfo? output, FileInfo? deletionScript, IOrderedEnumerable<Mp3Info> orderedDuplicates)
+    /// <summary>
+    /// This function takes as input songs that are grouped by their normalized title and are duplicate candidates.
+    /// This function removes those candidates from the list that have different amazon id. Those are considered different songs.
+    /// </summary>
+    /// <param name="duplicateSongs">Songs that are grouped by their normalized title and are duplicate candidates.</param>
+    /// <returns>Songs that are grouped by their normalized title and are duplicates that differ with respect to their amazon id if they have one.</returns>
+    public static IDictionary<string, SongLocations> DuplicatesWithDifferentAmazonIdsAreNotDuplicates(IDictionary<string, SongLocations> duplicateSongs)
+    {
+        var duplicateSongsCleaned = new Dictionary<string, SongLocations>();
+        foreach (var duplicateSong in duplicateSongs)
+        {
+            var distinctAmazonIds = duplicateSong.Value.Mp3Infos
+                .Select(ds => ds.AmazonId)
+                .Distinct();
+            var songLocations = new List<Mp3Info>();
+            foreach (var amazonId in distinctAmazonIds)
+            {
+                var songsByAmazonId = duplicateSong.Value.Mp3Infos
+                    .Where(mp3 => mp3.AmazonId == amazonId);
+                if (songsByAmazonId.Count() > 1)
+                {
+                    songLocations.AddRange(songsByAmazonId.ToList());
+                }
+            }
+            var normalizedTitle = duplicateSong.Key;
+            if (songLocations.Count > 1)
+            {
+                duplicateSongsCleaned.Add(normalizedTitle, new SongLocations(duplicateSong.Value.NormalizedTitle, songLocations));
+            }
+        }
+
+        return duplicateSongsCleaned;
+    }
+
+    private static IOrderedEnumerable<Mp3Info> AddDuplicateToScriptWhenHasNoAmazonIdAndOthersHaveAmazonId(FileInfo? output, FileInfo? deletionScript, IOrderedEnumerable<Mp3Info> orderedDuplicates)
     {
         try
         {
@@ -79,7 +113,7 @@ public static class FindDuplicatesExtensions
         return new List<Mp3Info>().OrderByDescending(d => d.SizeInBytes);
     }
 
-    private static IOrderedEnumerable<Mp3Info> RemoveWhereAlbumArtistIsNotEqualToArtistInOneOfTheDuplicates(FileInfo? output, FileInfo? deletionScript, IOrderedEnumerable<Mp3Info> orderedDuplicates)
+    private static IOrderedEnumerable<Mp3Info> AddDuplicateToScriptWhenAlbumArtistIsNotEqualToArtistInOneOfTheDuplicates(FileInfo? output, FileInfo? deletionScript, IOrderedEnumerable<Mp3Info> orderedDuplicates)
     {
         try
         {

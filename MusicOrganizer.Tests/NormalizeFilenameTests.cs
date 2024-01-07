@@ -8,7 +8,7 @@ public class NormalizeFilenameTests
     [InlineData("03. It’s Not My Time (Live in Austria).mp3", "03. It’s Not My Time .mp3")]
     [InlineData("03. It’s Not My Time [Live in Austria].mp3", "03. It’s Not My Time .mp3")]
     [InlineData("03. It’s Not My Time {Live in Austria}.mp3", "03. It’s Not My Time .mp3")]
-    public void Test1(string input, string expected)
+    public void RemoveContentInBrackets_ShouldRemoveContentInBrackets(string input, string expected)
     {
         string filename = input;
 

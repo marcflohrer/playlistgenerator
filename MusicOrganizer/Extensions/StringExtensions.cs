@@ -131,7 +131,7 @@ public static partial class StringExtensions
     /// </summary>
     /// <param name="title">Title.</param>
     /// <returns>Title without the appendix.</returns>
-    public static string RemoveTitleAppendix(this string title, NormalizeMode normalizeMode) 
+    public static string RemoveTitleAppendix(this string title, NormalizeMode normalizeMode)
         => RemoveAppendix(title, s_titleAppendixStarters, normalizeMode);
 
     /// <summary>
@@ -140,7 +140,7 @@ public static partial class StringExtensions
     /// </summary>
     /// <param name="artist">Artist.</param>
     /// <returns>Artist without the appendix.</returns>
-    public static string RemoveArtistAppendix(this string artist, NormalizeMode normalizeMode) 
+    public static string RemoveArtistAppendix(this string artist, NormalizeMode normalizeMode)
         => RemoveAppendix(artist, s_artistAppendixStarters, normalizeMode);
 
     private static string RemoveAppendix(string text, IList<string> endOfContentIndicators, NormalizeMode normalizeMode)
