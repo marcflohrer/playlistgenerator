@@ -160,13 +160,11 @@ public static class Mp3TagService
         var normalizedTag = title
             .ReplaceSpotifyTagErrors([.. musicBrainsTagMap])
             .ToLowerInvariant()
-            .RemoveContentAfterDash(normalizeMode);
+            .RemoveTitleAppendix(normalizeMode);
 
-        if (normalizeMode == NormalizeMode.StrictInterpret)
+        if (normalizeMode == NormalizeMode.StrictArtist)
         {
-            normalizedTag = normalizedTag.RemoveContentAfterAmpersand(normalizeMode);
-            normalizedTag = normalizedTag.RemoveContentAfterVersus(normalizeMode);
-            normalizedTag = normalizedTag.RemoveContentAfterVersusDot(normalizeMode);
+            normalizedTag = normalizedTag.RemoveArtistAppendix(normalizeMode);
         }
         normalizedTag = normalizedTag.RemoveContentInBrackets()
                                     .RemoveFeaturingSuffix()

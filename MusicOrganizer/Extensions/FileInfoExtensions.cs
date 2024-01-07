@@ -26,7 +26,7 @@ public static class FileInfoExtensions
                 tags.CleanTags(output);
             }
         }
-        var mainArtist = Mp3TagService.NormalizeSongTag(tags.Performers[0], tagMaps, NormalizeMode.StrictInterpret);
+        var mainArtist = Mp3TagService.NormalizeSongTag(tags.Performers[0], tagMaps, NormalizeMode.StrictArtist);
         var mp3Info = new Mp3Info(
             f.FullName,
             f.Length,

@@ -35,7 +35,7 @@ public class AsciiExtensionsTests
     [InlineData("Miss Murray - Radio Mix", "Miss Murray")]
     public static void RemoveContentBeforeDash_WhenDash_ThenOnlyTextBeforeDashIsReturned(string input, string expected)
     {
-        var output = input.RemoveContentAfterDash(Models.NormalizeMode.Strict);
+        var output = input.RemoveTitleAppendix(Models.NormalizeMode.Strict);
 
         // Assert
         Assert.Equal(expected, output);
@@ -66,7 +66,7 @@ public class AsciiExtensionsTests
     [InlineData("I Gotta Feeling", true, "igotafeelin")]
     public static void NormalizeSongTitle_WhenBrackets_ThenOnlyTextBeforeBracketsIsReturned(string input, bool isInterpret, string expected)
     {
-        var normalizeMode = isInterpret ? NormalizeMode.StrictInterpret : NormalizeMode.Strict;
+        var normalizeMode = isInterpret ? NormalizeMode.StrictArtist : NormalizeMode.Strict;
         var output = input.NormalizeSongTag(new List<MusicBrainzTagMap>{
             new() {
                 SpotifyTag = "Wasted Little DJ's",

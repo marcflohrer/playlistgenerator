@@ -8,7 +8,7 @@ namespace MusicOrganizer.Extensions;
 
 public static partial class StringExtensions
 {
-    public static Dictionary<string, string> CharReplacementMap = new Dictionary<string, string>()
+    private static readonly Dictionary<string, string> s_charReplacementMap = new()
     {
         {" ", @"\ "},
         { ",", @"\,"},
@@ -28,6 +28,19 @@ public static partial class StringExtensions
         {">", @"\>"}
     };
 
+    private static readonly IList<string> s_beginOfArtistAppendixIndicators = new List<string>()
+    {
+        " - ",
+        " & ",
+        " Vs ",
+        " Vs. "
+    };
+
+    private static readonly IList<string> s_beginOfTitleAppendixIndicators = new List<string>()
+    {
+        " - "
+    };
+
     private static IList<char> s_closingBrackets = new List<char> { ')', '}', ']' };
 
     public static IList<char> ClosingBrackets { get => s_closingBrackets; set => s_closingBrackets = value; }
@@ -38,7 +51,7 @@ public static partial class StringExtensions
         {
             return null;
         }
-        foreach (var kvp in CharReplacementMap)
+        foreach (var kvp in s_charReplacementMap)
         {
             filePath = filePath?.Replace(kvp.Key, kvp.Value);
         }
@@ -58,19 +71,19 @@ public static partial class StringExtensions
 
     public static string RemoveContentInBrackets(this string text)
     {
-        var noRoundBracketsContent = Regex.Replace(text, "(.*)(\\(.*\\))(.*)", "$1$3");
-        var noSquareBracketsContent = Regex.Replace(noRoundBracketsContent, "(.*)(\\[.*\\])(.*)", "$1$3");
-        return Regex.Replace(noSquareBracketsContent, "(.*)(\\{.*\\})(.*)", "$1$3");
-    }
+        if (string.IsNullOrEmpty(text))
+        {
+            return text;
+        }
 
-    public static string ReplaceRockNRoll(this string text) => text.Replace("Rock \u0026 Roll", "rockroll", StringComparison.InvariantCultureIgnoreCase);
+        return Regex.Replace(text, @"\{.*?\}|\[.*?\]|\(.*?\)", "");
+    }
 
     public static string ReplaceSpotifyTagErrors(this string text, List<MusicBrainzTagMap> tagMaps)
     {
         var tagErrorsFixed = text;
         // Replace longer tags first in case one tag is a substring of another.
-        tagMaps
-            .Sort((MusicBrainzTagMap tm1, MusicBrainzTagMap tm2) => tm2.SpotifyTag.Length.CompareTo(tm1.SpotifyTag.Length));
+        Sort(tagMaps);
         foreach (var tagFix in tagMaps)
         {
             if (tagErrorsFixed.Contains(tagFix.SpotifyTag, StringComparison.InvariantCultureIgnoreCase)
@@ -83,12 +96,30 @@ public static partial class StringExtensions
         return tagErrorsFixed;
     }
 
-    public static string RemoveContentAfterDash(this string text, NormalizeMode normalizeMode) => RemoveContentAfter(text, " - ", normalizeMode);
+    private static void Sort(List<MusicBrainzTagMap> tagMaps)
+    {
+        tagMaps.Sort((MusicBrainzTagMap tm1, MusicBrainzTagMap tm2) => tm2.SpotifyTag.Length.CompareTo(tm1.SpotifyTag.Length));
+    }
 
-    public static string RemoveContentAfterAmpersand(this string text, NormalizeMode normalizeMode) => RemoveContentAfter(text, " & ", normalizeMode);
-    public static string RemoveContentAfterVersus(this string text, NormalizeMode normalizeMode) => RemoveContentAfter(text, " Vs ", normalizeMode);
+    public static string RemoveTitleAppendix(this string text, NormalizeMode normalizeMode)
+    {
+        return RemoveAppendix(text, s_beginOfTitleAppendixIndicators, normalizeMode);
+    }
 
-    public static string RemoveContentAfterVersusDot(this string text, NormalizeMode normalizeMode) => RemoveContentAfter(text, " Vs. ", normalizeMode);
+    public static string RemoveArtistAppendix(this string text, NormalizeMode normalizeMode)
+    {
+        return RemoveAppendix(text, s_beginOfArtistAppendixIndicators, normalizeMode);
+    }
+
+    private static string RemoveAppendix(string text, IList<string> endOfContentIndicators, NormalizeMode normalizeMode)
+    {
+        var result = text;
+        foreach (var endOfTitleIndicator in endOfContentIndicators)
+        {
+            result = RemoveContentAfter(result, endOfTitleIndicator, normalizeMode);
+        }
+        return result;
+    }
 
     public static string RemoveContentAfter(this string text, string commentSign, NormalizeMode normalizeMode)
     {
@@ -120,6 +151,7 @@ public static partial class StringExtensions
             {'}', '{'},
             {']', '['},
         };
+
         var openingBracket = correspondingOpeningBracket[transliterated[minIndexOfNextClosingBracket]];
         var firstIndexOfPreviousOpeningBracket = transliterated.IndexOf(openingBracket);
         var indexOfCommentSign = transliterated.IndexOf(commentSign);
