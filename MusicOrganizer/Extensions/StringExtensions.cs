@@ -47,15 +47,17 @@ public static partial class StringExtensions
 
     public static string? EscapeSpecialChars(this string? filePath)
     {
-        if (filePath == null)
+        if (string.IsNullOrEmpty(filePath))
         {
-            return null;
+            return filePath;
         }
+
+        var sb = new StringBuilder(filePath);
         foreach (var kvp in s_charReplacementMap)
         {
-            filePath = filePath?.Replace(kvp.Key, kvp.Value);
+            sb.Replace(kvp.Key, kvp.Value);
         }
-        return filePath;
+        return sb.ToString();
     }
 
     public static string RemovePunctuation(this string text)
