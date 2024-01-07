@@ -69,12 +69,7 @@ public static partial class StringExtensions
 
         var result = text.Replace(" and ", "&");
         var punctuation = ".?!,:;––—´‘/…*& #~\\@^|";
-        var sb = new StringBuilder(result);
-        foreach (var p in punctuation)
-        {
-            sb.Replace(p.ToString(), string.Empty);
-        }
-        return sb.ToString();
+        return new string(result.Where(c => !punctuation.Contains(c)).ToArray());
     }
 
     public static string RemoveContentInBrackets(this string text)
