@@ -476,3 +476,4 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 *.mp3
+launch.json
