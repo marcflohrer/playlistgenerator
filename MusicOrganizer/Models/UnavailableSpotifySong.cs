@@ -30,7 +30,7 @@ public class UnavailableSpotifySong
         };
     }
 
-    public ExportifyPlaylistEntry ToPlaylistEntry() => new()
+    public ExportifyPlaylistEntryVersionOne ToPlaylistEntry() => new()
     {
         SpotifyId = "-",
         ArtistIds = "-",

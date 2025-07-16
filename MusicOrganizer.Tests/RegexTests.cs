@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Text.RegularExpressions;
-using MusicOrganizer.Extensions;
 using Moq;
-using static MusicOrganizer.Extensions.SonosEncodingExtensions;
+using MusicOrganizer.Extensions;
 using MusicOrganizer.Services;
+using static MusicOrganizer.Extensions.SonosEncodingExtensions;
 
 namespace MusicOrganizer.Tests
 {

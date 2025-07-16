@@ -1,4 +1,6 @@
+#pragma warning disable IDE0073 // The file header is missing or not located at the top of the file
 using System.Globalization;
+#pragma warning restore IDE0073 // The file header is missing or not located at the top of the file
 using System.Text;
 using CsvHelper;
 using CsvHelper.Configuration;
@@ -17,17 +19,53 @@ public static class CsvToMp3InfoParser
         FixBrokenCsvLines(csvFilePlayList);
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
-            NewLine = Environment.NewLine
+            NewLine = Environment.NewLine,
         };
         using var reader = new StreamReader(path: csvFilePlayList.FullName);
         using var csv = new CsvReader(reader, config, false);
-        var exportifyPlaylist = csv.GetRecords<ExportifyPlaylistEntry>();
-        var playlistEntries = new List<Mp3Info>();
-        foreach (var playlistEntry in exportifyPlaylist)
+        var exportifyPlaylist1 = GetExportifyPlaylistEntries(csv);
+        return exportifyPlaylist1.Select(playlistEntry => playlistEntry.ToPlaylistEntry(tagMaps)).ToList();
+    }
+
+    private static List<ExportifyPlaylistEntryVersionOne> GetExportifyPlaylistEntries(CsvReader csv)
+    {
+        List<ExportifyPlaylistEntryVersionOne> exportifyPlaylist1;
+        try
         {
-            playlistEntries.Add(playlistEntry.ToPlaylistEntry(tagMaps));
+            exportifyPlaylist1 = csv.GetRecords<ExportifyPlaylistEntryVersionOne>().ToList();
         }
-        return playlistEntries;
+        catch (Exception)
+        {
+            exportifyPlaylist1 = csv
+                .GetRecords<ExportifyPlaylistEntryVersionTwo>()
+                .ToList()
+                .Select(entry => new ExportifyPlaylistEntryVersionOne
+                {
+                    Acousticness = entry.Acousticness,
+                    AddedAt = entry.AddedAt,
+                    AddedBy = entry.AddedBy,
+                    AlbumName = entry.AlbumName,
+                    ArtistNames = entry.ArtistNames,
+                    Danceability = entry.Danceability,
+                    DurationMs = entry.DurationMs,
+                    Energy = entry.Energy,
+                    Genres = entry.Genres,
+                    Key = entry.Key,
+                    Popularity = entry.Popularity,
+                    ReleaseDate = entry.ReleaseDate,
+                    TrackName = entry.TrackName,
+                    Loudness = entry.Loudness,
+                    Mode = entry.Mode,
+                    Instrumentalness = entry.Instrumentalness,
+                    Liveness = entry.Liveness,
+                    Valence = entry.Valence,
+                    Tempo = entry.Tempo,
+                    TimeSignature = entry.TimeSignature
+                })
+                .ToList();
+        }
+
+        return exportifyPlaylist1;
     }
 
     private static void FixBrokenCsvLines(FileInfo csvFilePlayList)

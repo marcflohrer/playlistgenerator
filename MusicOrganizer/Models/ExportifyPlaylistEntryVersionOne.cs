@@ -3,7 +3,7 @@ using MusicOrganizer.Extensions;
 
 namespace MusicOrganizer.Models;
 
-public class ExportifyPlaylistEntry
+public class ExportifyPlaylistEntryVersionOne
 {
     [Index(0)]
     [Name("Spotify ID")]
